@@ -1,5 +1,6 @@
 package nu.henrikvester.haraldlang.tokenizer;
 
+import com.sun.source.tree.ReturnTree;
 import nu.henrikvester.haraldlang.core.SourceLocation;
 import nu.henrikvester.haraldlang.core.Token;
 import nu.henrikvester.haraldlang.core.TokenType;
@@ -11,7 +12,6 @@ public class Tokenizer {
     private int currIndex = 0;
     private int currCol = 0;
     private int currRow = 0;
-    private StringBuilder currentLexeme;
     private final static Gobbler[] GOBBLERS = new Gobbler[] { new NumberGobbler(), new IdentifierAndKeywordGobbler()};
 
     public Tokenizer(String input) {
@@ -20,14 +20,14 @@ public class Tokenizer {
     }
 
     private boolean areMoreCharacters() {
-        return input.length() > currIndex;
+        return input.length() > currIndex + 1;
     }
-
+    
     private void advance() {
-        currIndex++;
         if (!areMoreCharacters()) return;
-        currChar = input.charAt(currIndex);
+        currIndex++;
         advanceSourceLocation();
+        currChar = input.charAt(currIndex);
     }
     
     private void advanceSourceLocation() {
@@ -55,7 +55,7 @@ public class Tokenizer {
         for (Gobbler gobbler : GOBBLERS) {
             // Handle identifiers and keywords
             if (gobbler.isStart(currChar)) {
-                currentLexeme = new StringBuilder();
+                StringBuilder currentLexeme = new StringBuilder();
                 var startLocation = currentSourceLocation();
                 while (areMoreCharacters() && gobbler.isPart(currChar)) {
                     currentLexeme.append(currChar);
@@ -66,6 +66,8 @@ public class Tokenizer {
             }
         }
 
+        boolean hasAdvanced = false; // whether we've already advanced the current character
+        String lexeme = null;
         // Handle single-character tokens
         var tokenType = switch (currChar) {
             case '(' -> TokenType.LPAREN;
@@ -73,11 +75,47 @@ public class Tokenizer {
             case '{' -> TokenType.LBRACE;
             case '}' -> TokenType.RBRACE;
             case ';' -> TokenType.SEMICOLON;
-            default -> throw TokenizerException.unexpectedCharacter(currChar);
+            case ',' -> TokenType.COMMA;
+            case '+' -> TokenType.PLUS;
+            case '-' -> TokenType.MINUS;
+            case '=' -> TokenType.EQUALS;
+            case '!' -> {
+                advance();
+                if (currChar == '=') {
+                    yield TokenType.NOT_EQUALS;
+                } else {
+                    hasAdvanced = true;
+                    yield TokenType.EXCLAMATION;
+                }
+            }
+            case '>' -> {
+                advance();
+                if (currChar == '=') {
+                    lexeme = ">=";
+                    yield TokenType.GREATER_THAN_OR_EQUAL;
+                } else {
+                    hasAdvanced = true;
+                    yield TokenType.GREATER_THAN;
+                }
+            }
+            case '<' -> {
+                advance();
+                if (currChar == '=') {
+                    lexeme = "<=";
+                    yield TokenType.LESSER_THAN_OR_EQUAL;
+                } else {
+                    hasAdvanced = true;
+                    yield TokenType.LESSER_THAN;
+                }
+            }
+            default -> throw TokenizerException.unexpectedCharacter(currChar, currentSourceLocation());
         };
         var location = currentSourceLocation();
-        advance();
-        return new Token(tokenType, String.valueOf(currChar), location);
+        lexeme = lexeme == null ? String.valueOf(currChar) : lexeme;
+        if (!hasAdvanced) {
+            advance();
+        }
+        return new Token(tokenType, lexeme, location);
     }
     
     private Token eofToken() {

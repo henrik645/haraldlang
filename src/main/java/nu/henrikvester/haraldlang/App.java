@@ -1,20 +1,28 @@
 package nu.henrikvester.haraldlang;
 
-import nu.henrikvester.haraldlang.core.TokenType;
-import nu.henrikvester.haraldlang.exceptions.TokenizerException;
-import nu.henrikvester.haraldlang.tokenizer.Tokenizer;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
+import nu.henrikvester.haraldlang.parser.Parser;
+import nu.henrikvester.haraldlang.vm.HaraldMachine;
 
-/**
- * Hello world!
- */
 public class App {
-    public static void main(String[] args) throws TokenizerException {
-        var input = "fun (hello) { return 42; }";
-        var tokenizer = new Tokenizer(input);
-        while (true) {
-            var token = tokenizer.getNextToken();
-            if (token.type() == TokenType.EOF) break;
-            token.pointOut(input);
+    public static void main(String[] args) {
+        var input = """
+        {
+            let x = 0;
+            while (x <= 10) {
+                print x;
+                let x = x + 1;
+            }
+        };
+        """;
+
+        try {
+            var ast = new Parser(input).parseStatement();
+            System.out.println("AST: " + ast);
+            var vm = new HaraldMachine();
+            vm.run(ast);
+        } catch (HaraldLangException e) {
+            e.printError(input);
         }
     }
 }

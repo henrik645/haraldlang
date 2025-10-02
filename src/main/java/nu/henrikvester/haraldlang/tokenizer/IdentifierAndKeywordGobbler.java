@@ -18,6 +18,10 @@ public class IdentifierAndKeywordGobbler implements Gobbler {
         return switch (lexeme) {
             case "let" -> TokenType.KEYWORD_LET; 
             case "fun" -> TokenType.KEYWORD_FUN;
+            case "print" -> TokenType.KEYWORD_PRINT;
+            case "if" -> TokenType.KEYWORD_IF;
+            case "else" -> TokenType.KEYWORD_ELSE;
+            case "while" -> TokenType.KEYWORD_WHILE;
             default -> TokenType.IDENTIFIER;
         };
     }
