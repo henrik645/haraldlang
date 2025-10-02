@@ -26,6 +26,8 @@ public enum TokenType {
     LESSER_THAN,
     LESSER_THAN_OR_EQUAL,
     EXCLAMATION, // '!'
+    AMPERSAND,
+    ASTERISK,
     
     // Others
     IDENTIFIER,

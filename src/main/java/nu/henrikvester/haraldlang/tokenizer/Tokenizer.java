@@ -79,6 +79,8 @@ public class Tokenizer {
             case '+' -> TokenType.PLUS;
             case '-' -> TokenType.MINUS;
             case '=' -> TokenType.EQUALS;
+            case '&' -> TokenType.AMPERSAND;
+            case '*' -> TokenType.ASTERISK;
             case '!' -> {
                 advance();
                 if (currChar == '=') {
