@@ -50,6 +50,13 @@ public class Tokenizer {
             return eofToken();
         }
         
+        if (currChar == '#') {
+            while (areMoreCharacters() && currChar != '\n') {
+                advance();
+            }
+            return getNextToken();
+        }
+        
         // Handle all gobblers (multicharacter tokens)
         for (Gobbler gobbler : GOBBLERS) {
             // Handle identifiers and keywords
