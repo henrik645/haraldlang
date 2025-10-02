@@ -2,7 +2,7 @@ package nu.henrikvester.haraldlang.tokenizer;
 
 import nu.henrikvester.haraldlang.core.TokenType;
 
-public class IdentifierAndKeywordGobbler implements Gobbler {
+class IdentifierAndKeywordGobbler implements Gobbler {
     @Override
     public boolean isStart(char c) {
         return Character.isLetter(c);

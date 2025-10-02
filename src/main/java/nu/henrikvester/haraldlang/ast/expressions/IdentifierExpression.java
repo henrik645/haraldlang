@@ -1,7 +1,6 @@
 package nu.henrikvester.haraldlang.ast.expressions;
 
 import nu.henrikvester.haraldlang.core.SourceLocation;
-import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
 import nu.henrikvester.haraldlang.vm.Environment;
 import nu.henrikvester.haraldlang.vm.Word;

@@ -2,7 +2,7 @@ package nu.henrikvester.haraldlang.tokenizer;
 
 import nu.henrikvester.haraldlang.core.TokenType;
 
-public interface Gobbler {
+interface Gobbler {
     /**
      * Checks if the character can be the start of a token.
      * @param c the character to check

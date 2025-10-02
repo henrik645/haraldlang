@@ -10,8 +10,4 @@ public class TokenizerException extends HaraldLangException {
     public static TokenizerException unexpectedCharacter(char c, SourceLocation location) {
         return new TokenizerException("Unexpected character: " + c, location);
     }
-    
-    public static TokenizerException expectedCharacter(char c, SourceLocation location) {
-        return new TokenizerException("Expected character: " + c, location);
-    }
 }

@@ -3,7 +3,6 @@ package nu.henrikvester.haraldlang.exceptions;
 import nu.henrikvester.haraldlang.core.SourceLocation;
 
 public class HaraldMachineException extends HaraldLangException {
-    private SourceLocation location;
     private HaraldMachineException(String message, SourceLocation location) {
         super(message, location);
     }

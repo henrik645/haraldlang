@@ -160,11 +160,10 @@ public class Parser {
         return token.lexeme();
     }
     
-    private Token parseExact(TokenType tokenType) throws ParserException {
+    private void parseExact(TokenType tokenType) throws ParserException {
         var token = pop();
         if (token.type() != tokenType) {
             throw ParserException.unexpectedToken(tokenType.name(), token.type().name(), token.location());
         }
-        return token;
     }
 }

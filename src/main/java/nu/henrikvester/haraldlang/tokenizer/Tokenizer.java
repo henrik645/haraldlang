@@ -1,6 +1,5 @@
 package nu.henrikvester.haraldlang.tokenizer;
 
-import com.sun.source.tree.ReturnTree;
 import nu.henrikvester.haraldlang.core.SourceLocation;
 import nu.henrikvester.haraldlang.core.Token;
 import nu.henrikvester.haraldlang.core.TokenType;

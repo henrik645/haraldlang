@@ -4,14 +4,14 @@ import nu.henrikvester.haraldlang.core.TokenType;
 import nu.henrikvester.haraldlang.vm.Word;
 
 public class BinaryOperators {
-    public static BinaryOperator plus = (left, right) -> new Word(left.value() + right.value());
-    public static BinaryOperator minus = (left, right) -> new Word(left.value() - right.value());
-    public static BinaryOperator greaterThan = (left, right) -> Word.ofBoolean(left.value() > right.value());
-    public static BinaryOperator greaterThanOrEqual = (left, right) -> Word.ofBoolean(left.value() >= right.value());
-    public static BinaryOperator lesserThan = (left, right) -> Word.ofBoolean(left.value() < right.value());
-    public static BinaryOperator lesserThanOrEqual = (left, right) -> Word.ofBoolean(left.value() <= right.value());
-    public static BinaryOperator equal = (left, right) -> Word.ofBoolean(left.value() == right.value());
-    public static BinaryOperator notEqual = (left, right) -> Word.ofBoolean(left.value() != right.value());
+    public static final BinaryOperator plus = (left, right) -> new Word(left.value() + right.value());
+    public static final BinaryOperator minus = (left, right) -> new Word(left.value() - right.value());
+    public static final BinaryOperator greaterThan = (left, right) -> Word.ofBoolean(left.value() > right.value());
+    public static final BinaryOperator greaterThanOrEqual = (left, right) -> Word.ofBoolean(left.value() >= right.value());
+    public static final BinaryOperator lesserThan = (left, right) -> Word.ofBoolean(left.value() < right.value());
+    public static final BinaryOperator lesserThanOrEqual = (left, right) -> Word.ofBoolean(left.value() <= right.value());
+    public static final BinaryOperator equal = (left, right) -> Word.ofBoolean(left.value() == right.value());
+    public static final BinaryOperator notEqual = (left, right) -> Word.ofBoolean(left.value() != right.value());
     
     public static BinaryOperator fromTokenType(TokenType tokenType) {
         switch (tokenType) {
