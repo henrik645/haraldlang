@@ -87,6 +87,9 @@ public class Parser {
             case KEYWORD_WHILE -> {
                 return parseWhileStatement();
             }
+            case KEYWORD_FOR -> {
+                return parseForLoopStatement();
+            }
             case IDENTIFIER, NUMBER -> {
                 return liftExpression();
             }
@@ -103,7 +106,7 @@ public class Parser {
         }
     }
     
-    private Statement parseIfStatement() throws ParserException {
+    private IfStatement parseIfStatement() throws ParserException {
         pop(); // pop 'if'
         var condition = parseParenthesizedExpression();
         var thenBody = parseStatement();
@@ -117,13 +120,25 @@ public class Parser {
         }
     }
     
-    private Statement parseWhileStatement() throws ParserException {
+    private WhileStatement parseWhileStatement() throws ParserException {
         pop(); // pop 'while'
         var condition = parseParenthesizedExpression();
         var body = parseStatement();
         return new WhileStatement(condition, body);
     }
-
+    
+    private ForLoopStatement parseForLoopStatement() throws ParserException {
+        pop(); // pop 'for'
+        parseExact(TokenType.LPAREN);
+        var initializer = parseStatement();
+        var condition = parseExpression();
+        parseExact(TokenType.SEMICOLON);
+        var increment = parseStatement();
+        parseExact(TokenType.RPAREN);
+        var body = parseStatement();
+        return new ForLoopStatement(initializer, condition, increment, body);
+    }
+    
     private Expression parseParenthesizedExpression() throws ParserException {
         parseExact(TokenType.LPAREN);
         var condition = parseExpression();

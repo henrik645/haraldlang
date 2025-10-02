@@ -22,6 +22,7 @@ public class IdentifierAndKeywordGobbler implements Gobbler {
             case "if" -> TokenType.KEYWORD_IF;
             case "else" -> TokenType.KEYWORD_ELSE;
             case "while" -> TokenType.KEYWORD_WHILE;
+            case "for" -> TokenType.KEYWORD_FOR;
             default -> TokenType.IDENTIFIER;
         };
     }

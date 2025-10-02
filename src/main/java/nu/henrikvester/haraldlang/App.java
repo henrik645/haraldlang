@@ -8,10 +8,8 @@ public class App {
     public static void main(String[] args) {
         var input = """
         {
-            let x = 0;
-            while (x <= 10) {
+            for (let x = 0; x < 10; let x = x + 1;) {
                 print x;
-                let x = x + 1;
             }
         };
         """;
