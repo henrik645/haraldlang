@@ -1,0 +1,18 @@
+CODE:
+let x = 5;
+let y = x + 5;
+
+IL (SSA form):
+x0 = 5;
+t0 = x0 + 5;
+y0 = t0;
+
+how do we know when registers are not needed anymore? maybe by liveness analysis? maybe we can tell in a scope what values "escape" the scope?
+
+OPTIMIZATIONS:
+- copy propagation: replace all uses of t0 with y0
+- constant folding: replace x0 + 5 with 10
+- dead code elimination: if y0 is never used, remove it (and recursively remove any instructions that only feed into it)
+
+RULES:
+- a register may only be assigned to once (SSA form)
