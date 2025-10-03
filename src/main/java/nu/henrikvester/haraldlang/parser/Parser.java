@@ -20,7 +20,7 @@ public class Parser {
             var token = tokenizer.getNextToken();
             if (DEBUG) {
                 System.out.println(token);
-                token.location().pointOut(input);
+                token.location().pointOut(input, null);
                 System.out.println();
             }
             tokens.add(token);

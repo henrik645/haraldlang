@@ -8,6 +8,7 @@ public class App {
     public static void main(String[] args) {
         var input = """
         {
+        @@@
             for (let x = 0; x < 10; let x = x + 1;) {
                 print test;
                 print &x;

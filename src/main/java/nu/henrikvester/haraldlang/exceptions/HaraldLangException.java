@@ -11,6 +11,6 @@ public class HaraldLangException extends Exception {
     
     public void printError(String code) {
         System.err.println("Error: " + getMessage());
-        location.pointOut(code);
+        location.pointOut(code, getMessage());
     }
 }

@@ -4,7 +4,7 @@ import nu.henrikvester.haraldlang.core.SourceLocation;
 
 public class TokenizerException extends HaraldLangException {
     private TokenizerException(String message, SourceLocation location) {
-        super("While tokenizing: " + message, location);
+        super(message, location);
     }
     
     public static TokenizerException unexpectedCharacter(char c, SourceLocation location) {
