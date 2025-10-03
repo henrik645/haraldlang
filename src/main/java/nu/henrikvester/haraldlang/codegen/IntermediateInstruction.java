@@ -1,6 +1,7 @@
 package nu.henrikvester.haraldlang.codegen;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class IntermediateInstruction {
 
@@ -96,7 +97,7 @@ class SSA {
         var tr = new Translator();
         
         tr.letConst("x", 5);
-        tr.letConst("y", 10);
+//        tr.letConst("y", 10);
         tr.letAdd("y", "x", 10);
         
         var code = tr.block.instructions;
@@ -107,6 +108,7 @@ class SSA {
         }
 
         var intervals = Liveness.liveIntervals(code);
+        System.out.println();
         System.out.println("Live intervals:");
         System.out.println("id    def, last");
         for (var entry : intervals.entrySet()) {
@@ -118,6 +120,19 @@ class SSA {
             } else {
                 System.out.printf("v%-2d : [%d, %d] (never used)%n", id, interval[0], interval[1]);
             }
+        }
+        
+        System.out.println();
+        System.out.println("Live sets per index:");
+        for (int i = 0; i < code.size(); i++) {
+            var codeLocation = i;
+            var live = intervals.entrySet().stream()
+                    .filter(e -> e.getValue()[0] <= codeLocation && codeLocation <= e.getValue()[1])
+                    .map(e -> "v" + e.getKey())
+                    .toList();
+            var liveStr = String.join(", ", live);
+            var registerReport = live.size() > 4 ? " (memory needed)" : "";
+            System.out.printf("    after %d: %s%s%n", i, liveStr, registerReport);
         }
     }
 }
