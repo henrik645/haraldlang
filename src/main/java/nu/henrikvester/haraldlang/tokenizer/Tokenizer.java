@@ -15,6 +15,9 @@ public class Tokenizer {
 
     public Tokenizer(String input) {
         this.input = input;
+        if (input.isEmpty()) {
+            return;
+        }
         this.currChar = input.charAt(currIndex);
     }
 
