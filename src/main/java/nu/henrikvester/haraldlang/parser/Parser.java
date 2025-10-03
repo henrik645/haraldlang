@@ -62,7 +62,16 @@ public class Parser {
         }
     }
     
-    public Statement parseStatement() throws ParserException {
+    public Statement parse() throws ParserException {
+        var ret = parseStatement();
+        var next = peek();
+        if (next != null && next.type() != TokenType.EOF) {
+            throw ParserException.unexpectedToken("end of file", next.type().name(), next.location());
+        }
+        return ret;
+    }
+    
+    private Statement parseStatement() throws ParserException {
         var next = peek();
         if (next == null) {
             throw ParserException.unexpectedEndOfInput(lastLocation);

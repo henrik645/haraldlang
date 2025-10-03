@@ -19,7 +19,7 @@ public class App {
         """;
 
         try {
-            var ast = new Parser(input).parseStatement();
+            var ast = new Parser(input).parse();
             var vm = new HaraldMachine();
             vm.run(ast);
         } catch (HaraldLangException e) {
