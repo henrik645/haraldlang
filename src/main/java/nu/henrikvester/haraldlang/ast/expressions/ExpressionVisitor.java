@@ -1,13 +1,13 @@
 package nu.henrikvester.haraldlang.ast.expressions;
 
-import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
 public interface ExpressionVisitor<R> {
     R visitAddressOfExpression(AddressOfExpression expr);
 
     R visitLiteralExpression(LiteralExpression expr);
 
-    R visitBinaryExpression(BinaryExpression expr) throws HaraldMachineException;
+    R visitBinaryExpression(BinaryExpression expr) throws HaraldLangException;
 
-    R visitIdentifierExpression(IdentifierExpression expr) throws HaraldMachineException;
+    R visitVar(Var expr) throws HaraldLangException;
 }

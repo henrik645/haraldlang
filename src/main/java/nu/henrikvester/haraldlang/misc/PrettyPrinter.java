@@ -2,9 +2,17 @@ package nu.henrikvester.haraldlang.misc;
 
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.statements.*;
-import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
+import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 
 import java.util.ArrayList;
+
+//final class Pretty implements ExprVisitor<String>, StmtVisitor<Void> {
+//    private final StringBuilder out = new StringBuilder();
+//    private int indent = 0;
+//    private void nl() { out.append('\n').append("  ".repeat(indent)); }
+//    // ...
+//}
 
 public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisitor<String> {
     private final int indentationLevel;
@@ -51,17 +59,17 @@ public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisito
     }
 
     @Override
-    public String visitBinaryExpression(BinaryExpression expr) throws HaraldMachineException {
+    public String visitBinaryExpression(BinaryExpression expr) throws HaraldLangException {
         return expr.left().accept(this) + " " + expr.op().symbol() + " " + expr.right().accept(this);
     }
 
     @Override
-    public String visitIdentifierExpression(IdentifierExpression expr) {
+    public String visitVar(Var expr) {
         return expr.identifier();
     }
 
     @Override
-    public String visitForLoopStatement(ForLoopStatement stmt) throws HaraldMachineException {
+    public String visitForLoopStatement(ForLoopStatement stmt) throws HaraldLangException {
         var prefix = indentation() + "for (";
         saveCurrentIndentation(); // don't want indentation inside the for loop header
         var header = stmt.initial().accept(this) + " " + stmt.condition().accept(this) + "; " + stmt.update().accept(this) + ") ";
@@ -71,7 +79,7 @@ public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisito
     }
 
     @Override
-    public String visitBlockStatement(BlockStatement stmt) throws HaraldMachineException {
+    public String visitBlockStatement(BlockStatement stmt) throws HaraldLangException {
         var lines = new ArrayList<String>();
         lines.add("{");
         indent();
@@ -84,29 +92,38 @@ public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisito
     }
 
     @Override
-    public String visitAssignment(Assignment stmt) throws HaraldMachineException {
-        return indentation() + "let " + stmt.identifier() + " = " + stmt.value().accept(this) + ";";
+    public String visitAssignment(Assignment stmt) throws HaraldLangException {
+        if (!(stmt.lvalue() instanceof Var var)) {
+            throw new NotImplementedException("Only variable assignments are supported in pretty printer");
+        }
+        return indentation() + "let " + var.identifier() + " = " + stmt.value().accept(this) + ";";
     }
 
     @Override
-    public String visitIfStatement(IfStatement stmt) throws HaraldMachineException {
+    public String visitIfStatement(IfStatement stmt) throws HaraldLangException {
         var thenBody = stmt.thenBody().accept(this);
         var elseBody = stmt.elseBody() != null ? (" else ") + stmt.elseBody().accept(this) : "";
         return indentation() + "if (" + stmt.condition().accept(this) + ") " + thenBody + elseBody;
     }
 
     @Override
-    public String visitLiftedExpressionStatement(LiftedExpressionStatement stmt) throws HaraldMachineException {
+    public String visitLiftedExpressionStatement(LiftedExpressionStatement stmt) throws HaraldLangException {
         return indentation() + stmt.expression().accept(this) + ";";
     }
 
     @Override
-    public String visitPrintStatement(PrintStatement stmt) throws HaraldMachineException {
+    public String visitPrintStatement(PrintStatement stmt) throws HaraldLangException {
         return indentation() + "print " + stmt.expr().accept(this) + ";";
     }
 
     @Override
-    public String visitWhileStatement(WhileStatement stmt) throws HaraldMachineException {
+    public String visitWhileStatement(WhileStatement stmt) throws HaraldLangException {
         return indentation() + "while (" + stmt.condition().accept(this) + ") " + stmt.body().accept(this);
+    }
+
+    @Override
+    public String visitDeclaration(Declaration declaration) throws HaraldLangException {
+        var expr = declaration.expression() != null ? " = " + declaration.expression().accept(this) : "";
+        return indentation() + "declare " + declaration.identifier() + expr + ";";
     }
 }

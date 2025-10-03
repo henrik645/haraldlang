@@ -9,6 +9,7 @@ public enum TokenType {
     KEYWORD_ELSE,
     KEYWORD_WHILE,
     KEYWORD_FOR,
+    KEYWORD_DECLARE,
 
     // Symbols
     LPAREN,

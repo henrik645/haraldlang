@@ -1,19 +1,21 @@
 package nu.henrikvester.haraldlang.ast.statements;
 
-import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
 public interface StatementVisitor<R> {
-    R visitForLoopStatement(ForLoopStatement stmt) throws HaraldMachineException;
+    R visitForLoopStatement(ForLoopStatement stmt) throws HaraldLangException;
 
-    R visitBlockStatement(BlockStatement stmt) throws HaraldMachineException;
+    R visitBlockStatement(BlockStatement stmt) throws HaraldLangException;
 
-    R visitAssignment(Assignment stmt) throws HaraldMachineException;
+    R visitDeclaration(Declaration declaration) throws HaraldLangException;
 
-    R visitIfStatement(IfStatement stmt) throws HaraldMachineException;
+    R visitAssignment(Assignment stmt) throws HaraldLangException;
 
-    R visitLiftedExpressionStatement(LiftedExpressionStatement stmt) throws HaraldMachineException;
+    R visitIfStatement(IfStatement stmt) throws HaraldLangException;
 
-    R visitPrintStatement(PrintStatement stmt) throws HaraldMachineException;
+    R visitLiftedExpressionStatement(LiftedExpressionStatement stmt) throws HaraldLangException;
 
-    R visitWhileStatement(WhileStatement stmt) throws HaraldMachineException;
+    R visitPrintStatement(PrintStatement stmt) throws HaraldLangException;
+
+    R visitWhileStatement(WhileStatement stmt) throws HaraldLangException;
 }

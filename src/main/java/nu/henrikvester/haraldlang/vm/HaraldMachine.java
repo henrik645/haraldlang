@@ -1,7 +1,7 @@
 package nu.henrikvester.haraldlang.vm;
 
 import nu.henrikvester.haraldlang.ast.statements.Statement;
-import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
 public class HaraldMachine {
     private final Environment environment = new Environment();
@@ -11,7 +11,7 @@ public class HaraldMachine {
         return environment;
     }
 
-    public void run(Statement statement) throws HaraldMachineException {
+    public void run(Statement statement) throws HaraldLangException {
         statement.accept(interpreter);
     }
 }

@@ -1,11 +1,13 @@
 package nu.henrikvester.haraldlang.vm;
 
 import nu.henrikvester.haraldlang.ast.expressions.*;
+import nu.henrikvester.haraldlang.ast.lvalue.LValueVisitor;
 import nu.henrikvester.haraldlang.ast.statements.*;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
 import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 
-class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word> {
+class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word>, LValueVisitor<Word> {
     private final Environment environment;
 
     public Interpreter(Environment environment) {
@@ -13,7 +15,7 @@ class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word> {
     }
 
     @Override
-    public Void visitForLoopStatement(ForLoopStatement stmt) throws HaraldMachineException {
+    public Void visitForLoopStatement(ForLoopStatement stmt) throws HaraldLangException {
         stmt.initial().accept(this);
         while (stmt.condition().accept(this).isTruthy()) {
             stmt.body().accept(this);
@@ -23,7 +25,7 @@ class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word> {
     }
 
     @Override
-    public Void visitBlockStatement(BlockStatement block) throws HaraldMachineException {
+    public Void visitBlockStatement(BlockStatement block) throws HaraldLangException {
         for (var stmt : block.statements()) {
             stmt.accept(this);
         }
@@ -31,13 +33,32 @@ class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word> {
     }
 
     @Override
-    public Void visitAssignment(Assignment stmt) throws HaraldMachineException {
-        environment.set(stmt.identifier(), stmt.value().accept(this));
+    public Void visitDeclaration(Declaration declaration) throws HaraldLangException {
+        Word value;
+        if (declaration.expression() != null) {
+            value = declaration.expression().accept(this);
+        } else {
+            value = null;
+        }
+        environment.set(declaration.identifier(), value);
+        return null;
+    }
+    
+    @Override
+    public Void visitAssignment(Assignment stmt) throws HaraldLangException {
+        // must be previously declared
+        if (!(stmt.lvalue() instanceof Var var)) {
+            throw new NotImplementedException(); // TODO support other lvalues (like dereference)
+        }
+        if (!environment.isDeclared(var.identifier())) {
+            throw HaraldMachineException.undefinedVariable(stmt.lvalue());
+        }
+        environment.set(var.identifier(), stmt.value().accept(this));
         return null;
     }
 
     @Override
-    public Void visitIfStatement(IfStatement stmt) throws HaraldMachineException {
+    public Void visitIfStatement(IfStatement stmt) throws HaraldLangException {
         if (stmt.condition().accept(this).isTruthy()) {
             stmt.thenBody().accept(this);
         } else if (stmt.elseBody() != null) {
@@ -47,19 +68,19 @@ class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word> {
     }
 
     @Override
-    public Void visitLiftedExpressionStatement(LiftedExpressionStatement stmt) throws HaraldMachineException {
+    public Void visitLiftedExpressionStatement(LiftedExpressionStatement stmt) throws HaraldLangException {
         stmt.expression().accept(this);
         return null;
     }
 
     @Override
-    public Void visitPrintStatement(PrintStatement stmt) throws HaraldMachineException {
+    public Void visitPrintStatement(PrintStatement stmt) throws HaraldLangException {
         System.out.println("[OUTPUT] " + stmt.expr().accept(this));
         return null;
     }
 
     @Override
-    public Void visitWhileStatement(WhileStatement stmt) throws HaraldMachineException {
+    public Void visitWhileStatement(WhileStatement stmt) throws HaraldLangException {
         while (stmt.condition().accept(this).isTruthy()) {
             stmt.body().accept(this);
         }
@@ -77,15 +98,18 @@ class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word> {
     }
 
     @Override
-    public Word visitBinaryExpression(BinaryExpression expr) throws HaraldMachineException {
+    public Word visitBinaryExpression(BinaryExpression expr) throws HaraldLangException {
         return expr.op().apply(expr.left().accept(this), expr.right().accept(this));
     }
 
     @Override
-    public Word visitIdentifierExpression(IdentifierExpression expr) throws HaraldMachineException {
-        var ret = environment.get(expr.identifier());
+    public Word visitVar(Var var) throws HaraldLangException {
+        if (!environment.isDeclared(var.identifier())) {
+            throw HaraldMachineException.undefinedVariable(var);
+        }
+        var ret = environment.get(var.identifier());
         if (ret == null) {
-            throw HaraldMachineException.undefinedVariable(expr.identifier(), expr.location());
+            throw HaraldMachineException.uninitializedVariable(var);
         }
         return ret;
     }

@@ -45,10 +45,10 @@ public class Parser {
     public Expression parseExpression() throws ParserException {
         var token = pop();
         var left = switch (token.type()) {
-            case AMPERSAND -> new AddressOfExpression(parseIdentifier());
+            case AMPERSAND -> new AddressOfExpression(parseVariable());
             case ASTERISK -> throw ParserException.notImplementedYet("Dereference operator", token.location());
             case NUMBER -> new LiteralExpression(Integer.parseInt(token.lexeme()));
-            case IDENTIFIER -> new IdentifierExpression(token.lexeme(), token.location());
+            case IDENTIFIER -> new Var(token.lexeme(), token.location());
             default -> throw ParserException.unexpectedToken("expression", token.type().name(), token.location());
         };
 
@@ -80,14 +80,27 @@ public class Parser {
             throw ParserException.unexpectedEndOfInput(lastLocation);
         }
         switch (next.type()) {
+            case KEYWORD_DECLARE -> {
+                pop();
+                var var = parseVariable();
+                var equals = peek();
+                if (equals != null && equals.type() == TokenType.EQUALS) {
+                    pop(); // pop '='
+                    var expression = parseExpression();
+                    parseExact(TokenType.SEMICOLON);
+                    return new Declaration(var.identifier(), expression);
+                }
+                parseExact(TokenType.SEMICOLON);
+                return new Declaration(var.identifier(), null);
+            }
             case KEYWORD_LET -> {
                 pop();
-                var identifier = parseIdentifier();
+                var var = parseVariable();
                 parseExact(TokenType.EQUALS);
                 var expression = parseExpression();
                 parseExact(TokenType.SEMICOLON);
 
-                return new Assignment(identifier, expression);
+                return new Assignment(var, expression);
             }
             case KEYWORD_PRINT -> {
                 pop();
@@ -166,12 +179,12 @@ public class Parser {
         return new LiftedExpressionStatement(exp);
     }
 
-    private String parseIdentifier() throws ParserException {
+    private Var parseVariable() throws ParserException {
         var token = pop();
         if (token.type() != TokenType.IDENTIFIER) {
             throw ParserException.unexpectedToken("IDENTIFIER", token.type().name(), token.location());
         }
-        return token.lexeme();
+        return new Var(token.lexeme(), token.location());
     }
 
     private void parseExact(TokenType tokenType) throws ParserException {

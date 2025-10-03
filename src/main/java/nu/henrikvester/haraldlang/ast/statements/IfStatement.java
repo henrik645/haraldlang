@@ -1,7 +1,7 @@
 package nu.henrikvester.haraldlang.ast.statements;
 
 import nu.henrikvester.haraldlang.ast.expressions.Expression;
-import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
 public record IfStatement(Expression condition, Statement thenBody, Statement elseBody) implements Statement {
     public IfStatement(Expression condition, Statement thenBody) {
@@ -9,7 +9,7 @@ public record IfStatement(Expression condition, Statement thenBody, Statement el
     }
 
     @Override
-    public <R> R accept(StatementVisitor<R> visitor) throws HaraldMachineException {
+    public <R> R accept(StatementVisitor<R> visitor) throws HaraldLangException {
         return visitor.visitIfStatement(this);
     }
 }

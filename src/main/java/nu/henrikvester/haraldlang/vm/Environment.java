@@ -13,4 +13,8 @@ public class Environment {
     public void set(String identifier, Word value) {
         variables.put(identifier, value);
     }
+
+    public boolean isDeclared(String identifier) {
+        return variables.containsKey(identifier);
+    }
 }

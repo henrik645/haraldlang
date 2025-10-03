@@ -9,6 +9,9 @@ public class App {
     public static void main(String[] args) {
         var input = """
                 {
+                    declare i;
+                    declare x;
+                    declare y = x + 5;
                     for (let i = 0; i < 10; let i = i + 1;) {
                         print i;
                     }
@@ -16,7 +19,7 @@ public class App {
                         for (let x = 0; x < 10; let x = x + 1;) {
                             print x;
                         }
-                        print 10;
+                        print y;
                     } else {
                         print 1;
                     }
