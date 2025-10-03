@@ -19,8 +19,8 @@ public class TranslatorImpl implements Translator {
     }
 
     @Override
-    public Label label() {
-        return fb.newLabel();
+    public Label label(String purpose) {
+        return fb.newLabel(purpose);
     }
 
     @Override

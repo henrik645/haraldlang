@@ -6,6 +6,7 @@ import java.util.Map;
 
 enum BinOp {
     ADD, SUB, SHL, AND, OR, XOR;
+    // TODO what to do with < > etc?
 
     public static BinOp fromString(String s) {
         return switch (s) {

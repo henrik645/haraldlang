@@ -49,11 +49,14 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
 
     @Override
     public Void visitForLoopStatement(ForLoopStatement stmt) throws HaraldLangException {
-        var conditionLabel = tr.label();
-        var bodyLabel = tr.label();
-        var endLabel = tr.label();
+        var conditionLabel = tr.label("for_cond");
+        var bodyLabel = tr.label("for_body");
+        var endLabel = tr.label("for_end");
 
         stmt.initial().accept(this);
+        tr.jmp(conditionLabel);
+
+        tr.mark(conditionLabel);
         var cond = stmt.condition().accept(this);
         tr.brz(cond, endLabel, bodyLabel);
 
@@ -105,9 +108,9 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
 
     @Override
     public Void visitIfStatement(IfStatement stmt) throws HaraldLangException {
-        var thenBlockLabel = tr.label();
-        var elseBlockLabel = stmt.elseBody() != null ? tr.label() : null;
-        var endBlockLabel = tr.label();
+        var thenBlockLabel = tr.label("if_then");
+        var elseBlockLabel = stmt.elseBody() != null ? tr.label("if_else") : null;
+        var endBlockLabel = tr.label("if_end");
 
         var cond = stmt.condition().accept(this);
         var ifZeroTarget = elseBlockLabel != null ? elseBlockLabel : endBlockLabel;
@@ -145,10 +148,13 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
 
     @Override
     public Void visitWhileStatement(WhileStatement stmt) throws HaraldLangException {
-        var conditionLabel = tr.label();
-        var bodyLabel = tr.label();
-        var endLabel = tr.label();
+        var conditionLabel = tr.label("while_cond");
+        var bodyLabel = tr.label("while_body");
+        var endLabel = tr.label("while_end");
 
+        tr.jmp(conditionLabel);
+
+        tr.mark(conditionLabel);
         var cond = stmt.condition().accept(this);
         tr.brz(cond, endLabel, bodyLabel);
 

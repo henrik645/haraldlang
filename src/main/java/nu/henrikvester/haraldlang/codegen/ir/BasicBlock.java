@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BasicBlock {
     @Getter
@@ -39,7 +40,8 @@ public class BasicBlock {
 
     @Override
     public String toString() {
-        return label + ":\n  PHI " + phis + "\n  " + instructions + "\n  TERM " + terminator;
+        var instructionStr = instructions.stream().map(Object::toString).map(line -> "    " + line).collect(Collectors.joining("\n"));
+        return label + ":\n  PHI " + phis + "\n" + instructionStr + "\n  TERM " + terminator;
     }
 
     public boolean isClosed() {

@@ -9,13 +9,10 @@ public class CompilerTest {
     public static void main(String[] args) throws HaraldLangException {
         var input = """
                 {
-                    declare a = 5;
-                    declare x = 10;
-                    {
-                        declare x = 5;
-                        print x;
+                    for (declare x = 10; x; let x = x - 1;) {
+                        declare y = x + 2;
+                        print y;
                     }
-                    declare y = a + x;
                 }
                 """;
 
@@ -26,7 +23,7 @@ public class CompilerTest {
 
         var fb = new FunctionBuilder("main");
 
-        var locals = List.of(new VarSlot(0, "a"), new VarSlot(1, "x"), new VarSlot(2, "x"), new VarSlot(3, "y"));
+        var locals = List.of(new VarSlot(0, "x"), new VarSlot(1, "y"));
         var codegen = new CodeGenerator(new TranslatorImpl(fb), nr, locals);
 
         ast.accept(codegen);
@@ -34,8 +31,7 @@ public class CompilerTest {
         var blocks = fb.getBlocks();
 
         for (var e : blocks.entrySet()) {
-            System.out.println("Key: " + e.getKey());
-            System.out.println("Block: " + e.getValue());
+            System.out.println(e.getValue());
             System.out.println();
         }
     }

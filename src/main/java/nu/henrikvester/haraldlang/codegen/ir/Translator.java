@@ -6,7 +6,7 @@ public interface Translator {
     // Value creators
     IRTemp temp();
 
-    Label label();
+    Label label(String purpose);
 
     // Emission helpers
     IRTemp bin(BinOp op, IRValue a, IRValue b);

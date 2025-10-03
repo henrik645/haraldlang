@@ -125,6 +125,7 @@ public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<V
     @Override
     public Void visitAssignment(Assignment stmt) throws HaraldLangException {
         // no name resolution here, but we need to visit the value expression
+        stmt.lvalue().accept(this);
         stmt.value().accept(this);
         return null;
     }

@@ -1,7 +1,6 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,27 +17,31 @@ import java.util.Map;
  * 6. Emit machine code / bytecode
  */
 
-@RequiredArgsConstructor
 public class FunctionBuilder {
     private final String name;
     @Getter // TODO: remove getter -- all access to block should be from `finish` method
     private final Map<Label, BasicBlock> blocks = new LinkedHashMap<>();
     private int nextTemp = 0;
     private int nextLabel = 0;
-    BasicBlock current = newBlock(newLabel());
+    BasicBlock current;
+
+    public FunctionBuilder(String name) {
+        this.name = name;
+        var currentBlockLabel = newLabel("func_" + name);
+        this.current = newBlock(currentBlockLabel);
+        this.blocks.put(currentBlockLabel, this.current);
+    }
 
     IRTemp newTemp() {
         return new IRTemp(nextTemp++);
     }
 
-    Label newLabel() {
-        return new Label(nextLabel++);
+    Label newLabel(String purpose) {
+        return new Label(nextLabel++, purpose);
     }
 
     BasicBlock newBlock(Label label) {
-        var block = new BasicBlock(label);
-        blocks.put(label, block);
-        return block;
+        return new BasicBlock(label);
     }
 
     BasicBlock getOrCreate(Label label) {
