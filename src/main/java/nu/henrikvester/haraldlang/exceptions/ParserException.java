@@ -14,4 +14,8 @@ public class ParserException extends HaraldLangException {
     public static ParserException unexpectedEndOfInput(SourceLocation location) {
         return new ParserException("Unexpected end of input", location);
     }
+    
+    public static ParserException notImplementedYet(String feature, SourceLocation location) {
+        return new ParserException("Not yet implemented: " + feature, location);
+    }
 }

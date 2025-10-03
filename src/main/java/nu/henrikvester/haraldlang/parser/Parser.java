@@ -42,9 +42,11 @@ public class Parser {
     public Expression parseExpression() throws ParserException {
         var token = pop();
         var left = switch (token.type()) {
+            case AMPERSAND -> new AddressOfExpression(parseIdentifier());
+            case ASTERISK -> throw ParserException.notImplementedYet("Dereference operator", token.location());
             case NUMBER -> new LiteralExpression(Integer.parseInt(token.lexeme()));
             case IDENTIFIER -> new IdentifierExpression(token.lexeme(), token.location());
-            default -> throw ParserException.unexpectedToken("NUMBER or IDENTIFIER", token.type().name(), token.location());
+            default -> throw ParserException.unexpectedToken("expression", token.type().name(), token.location());
         };
         
         var operator = peek();
