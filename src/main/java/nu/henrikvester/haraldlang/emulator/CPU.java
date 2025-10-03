@@ -1,4 +1,4 @@
-package nu.henrikvester.haraldlang.codegen;
+package nu.henrikvester.haraldlang.emulator;
 
 public class CPU {
 
