@@ -5,12 +5,13 @@ import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
 
 public class HaraldMachine {
     private final Environment environment = new Environment();
+    private final Interpreter interpreter = new Interpreter(environment);
 
     public Environment getEnvironment() {
         return environment;
     }
 
     public void run(Statement statement) throws HaraldMachineException {
-        statement.execute(this);
+        statement.accept(interpreter);
     }
 }

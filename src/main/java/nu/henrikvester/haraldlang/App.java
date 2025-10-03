@@ -1,6 +1,7 @@
 package nu.henrikvester.haraldlang;
 
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
+import nu.henrikvester.haraldlang.misc.PrettyPrinter;
 import nu.henrikvester.haraldlang.parser.Parser;
 import nu.henrikvester.haraldlang.vm.HaraldMachine;
 
@@ -8,18 +9,26 @@ public class App {
     public static void main(String[] args) {
         var input = """
                 {
-                @@@
-                    for (let x = 0; x < 10; let x = x + 1;) {
-                        print test;
-                        print &x;
-                        # print *x;
-                        print x;
+                    for (let i = 0; i < 10; let i = i + 1;) {
+                        print i;
                     }
-                };
+                    if (i = 10) {
+                        for (let x = 0; x < 10; let x = x + 1;) {
+                            print x;
+                        }
+                        print 10;
+                    } else {
+                        print 1;
+                    }
+                }
                 """;
 
         try {
             var ast = new Parser(input).parse();
+            var prettyPrinter = new PrettyPrinter(8);
+            var pretty = ast.accept(prettyPrinter);
+            System.out.println("Pretty printed AST:");
+            System.out.println(pretty);
             var vm = new HaraldMachine();
             vm.run(ast);
         } catch (HaraldLangException e) {

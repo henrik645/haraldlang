@@ -4,14 +4,101 @@ import nu.henrikvester.haraldlang.core.TokenType;
 import nu.henrikvester.haraldlang.vm.Word;
 
 public class BinaryOperators {
-    public static final BinaryOperator plus = (left, right) -> new Word(left.value() + right.value());
-    public static final BinaryOperator minus = (left, right) -> new Word(left.value() - right.value());
-    public static final BinaryOperator greaterThan = (left, right) -> Word.ofBoolean(left.value() > right.value());
-    public static final BinaryOperator greaterThanOrEqual = (left, right) -> Word.ofBoolean(left.value() >= right.value());
-    public static final BinaryOperator lesserThan = (left, right) -> Word.ofBoolean(left.value() < right.value());
-    public static final BinaryOperator lesserThanOrEqual = (left, right) -> Word.ofBoolean(left.value() <= right.value());
-    public static final BinaryOperator equal = (left, right) -> Word.ofBoolean(left.value() == right.value());
-    public static final BinaryOperator notEqual = (left, right) -> Word.ofBoolean(left.value() != right.value());
+    public static final BinaryOperator plus = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return new Word(left.value() + right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return "+";
+        }
+    };
+
+    public static final BinaryOperator minus = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return new Word(left.value() - right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return "-";
+        }
+    };
+
+    public static final BinaryOperator greaterThan = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return Word.ofBoolean(left.value() > right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return ">";
+        }
+    };
+
+    public static final BinaryOperator greaterThanOrEqual = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return Word.ofBoolean(left.value() >= right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return ">=";
+        }
+    };
+
+    public static final BinaryOperator lesserThan = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return Word.ofBoolean(left.value() < right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return "<";
+        }
+    };
+
+    public static final BinaryOperator lesserThanOrEqual = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return Word.ofBoolean(left.value() <= right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return "<=";
+        }
+    };
+
+    public static final BinaryOperator equal = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return Word.ofBoolean(left.value() == right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return "=";
+        }
+    };
+
+    public static final BinaryOperator notEqual = new BinaryOperator() {
+        @Override
+        public Word apply(Word left, Word right) {
+            return Word.ofBoolean(left.value() != right.value());
+        }
+
+        @Override
+        public String symbol() {
+            return "!=";
+        }
+    };
 
     public static BinaryOperator fromTokenType(TokenType tokenType) {
         switch (tokenType) {
