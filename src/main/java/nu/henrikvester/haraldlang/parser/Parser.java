@@ -45,9 +45,9 @@ public class Parser {
     public Expression parseExpression() throws ParserException {
         var token = pop();
         var left = switch (token.type()) {
-            case AMPERSAND -> new AddressOfExpression(parseVariable());
+            case AMPERSAND -> new AddressOfExpression(parseVariable(), token.location());
             case ASTERISK -> throw ParserException.notImplementedYet("Dereference operator", token.location());
-            case NUMBER -> new LiteralExpression(Integer.parseInt(token.lexeme()));
+            case NUMBER -> new LiteralExpression(Integer.parseInt(token.lexeme()), token.location());
             case IDENTIFIER -> new Var(token.lexeme(), token.location());
             default -> throw ParserException.unexpectedToken("expression", token.type().name(), token.location());
         };
@@ -57,9 +57,9 @@ public class Parser {
             return left;
         }
         if (BinaryOperators.tokenTypeIsOperator(operator.type())) {
-            pop(); // pop operator
+            var op = pop(); // pop operator
             var right = parseExpression();
-            return new BinaryExpression(left, BinaryOperators.fromTokenType(operator.type()), right);
+            return new BinaryExpression(left, BinaryOperators.fromTokenType(operator.type()), right, op.location());
         } else {
             return left;
         }
@@ -81,17 +81,17 @@ public class Parser {
         }
         switch (next.type()) {
             case KEYWORD_DECLARE -> {
-                pop();
+                var kw = pop();
                 var var = parseVariable();
                 var equals = peek();
                 if (equals != null && equals.type() == TokenType.EQUALS) {
                     pop(); // pop '='
                     var expression = parseExpression();
                     parseExact(TokenType.SEMICOLON);
-                    return new Declaration(var.identifier(), expression);
+                    return new Declaration(var.identifier(), expression, kw.location());
                 }
                 parseExact(TokenType.SEMICOLON);
-                return new Declaration(var.identifier(), null);
+                return new Declaration(var.identifier(), null, kw.location());
             }
             case KEYWORD_LET -> {
                 pop();
@@ -121,41 +121,41 @@ public class Parser {
                 return liftExpression();
             }
             case LBRACE -> {
-                pop(); // pop '{'
+                var opening = pop(); // pop '{'
                 var statements = new ArrayList<Statement>();
                 while (peek() != null && peek().type() != TokenType.RBRACE) {
                     statements.add(parseStatement());
                 }
                 parseExact(TokenType.RBRACE);
-                return new BlockStatement(statements);
+                return new BlockStatement(statements, opening.location());
             }
             default -> throw ParserException.unexpectedToken("statement", next.type().name(), next.location());
         }
     }
 
     private IfStatement parseIfStatement() throws ParserException {
-        pop(); // pop 'if'
+        var kw = pop(); // pop 'if'
         var condition = parseParenthesizedExpression();
         var thenBody = parseStatement();
         var next = peek();
         if (next.type() == TokenType.KEYWORD_ELSE) {
             pop(); // pop 'else'
             var elseBody = parseStatement();
-            return new IfStatement(condition, thenBody, elseBody);
+            return new IfStatement(condition, thenBody, elseBody, kw.location());
         } else {
-            return new IfStatement(condition, thenBody);
+            return new IfStatement(condition, thenBody, kw.location());
         }
     }
 
     private WhileStatement parseWhileStatement() throws ParserException {
-        pop(); // pop 'while'
+        var kw = pop(); // pop 'while'
         var condition = parseParenthesizedExpression();
         var body = parseStatement();
-        return new WhileStatement(condition, body);
+        return new WhileStatement(condition, body, kw.location());
     }
 
     private ForLoopStatement parseForLoopStatement() throws ParserException {
-        pop(); // pop 'for'
+        var kw = pop(); // pop 'for'
         parseExact(TokenType.LPAREN);
         var initializer = parseStatement();
         var condition = parseExpression();
@@ -163,7 +163,7 @@ public class Parser {
         var increment = parseStatement();
         parseExact(TokenType.RPAREN);
         var body = parseStatement();
-        return new ForLoopStatement(initializer, condition, increment, body);
+        return new ForLoopStatement(initializer, condition, increment, body, kw.location());
     }
 
     private Expression parseParenthesizedExpression() throws ParserException {
