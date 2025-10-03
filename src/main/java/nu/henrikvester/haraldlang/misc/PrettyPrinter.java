@@ -56,7 +56,7 @@ public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisito
     }
 
     @Override
-    public String visitIdentifierExpression(IdentifierExpression expr) throws HaraldMachineException {
+    public String visitIdentifierExpression(IdentifierExpression expr) {
         return expr.identifier();
     }
 
