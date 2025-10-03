@@ -9,8 +9,9 @@ public class App {
         var input = """
         {
             for (let x = 0; x < 10; let x = x + 1;) {
+                print test;
                 print &x;
-                print *x;
+                # print *x;
                 print x;
             }
         };
@@ -18,7 +19,6 @@ public class App {
 
         try {
             var ast = new Parser(input).parseStatement();
-            System.out.println("AST: " + ast);
             var vm = new HaraldMachine();
             vm.run(ast);
         } catch (HaraldLangException e) {
