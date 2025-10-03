@@ -10,7 +10,7 @@ public class App {
         var input = """
                 {
                     declare i;
-                    declare x;
+                    declare x = 100;
                     declare y = x + 5;
                     for (let i = 0; i < 10; let i = i + 1;) {
                         print i;

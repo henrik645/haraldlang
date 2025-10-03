@@ -4,8 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-enum BinOp {ADD, SUB, SHL, AND, OR, XOR}
+enum BinOp {
+    ADD, SUB, SHL, AND, OR, XOR;
 
+    public static BinOp fromString(String s) {
+        return switch (s) {
+            case "+" -> ADD;
+            case "-" -> SUB;
+            case "<<" -> SHL;
+            case "&" -> AND;
+            case "|" -> OR;
+            case "^" -> XOR;
+            default -> throw new IllegalArgumentException("Unknown binary operator: " + s);
+        };
+    }
+}
+
+// TODO is dst, inputs, temps really needed?
 public sealed interface IRInst {
     /**
      * Destination of this instruction, or null if none
@@ -29,6 +44,10 @@ public sealed interface IRInst {
     default List<IRTemp> temps() {
         return inputs().stream().filter(IRTemp.class::isInstance).map(IRTemp.class::cast).toList();
     }
+}
+
+sealed interface IRTerminator {
+    List<IRValue> inputs();
 }
 
 record Bin(IRTemp dst, BinOp op, IRValue lhs, IRValue rhs) implements IRInst {
@@ -64,29 +83,38 @@ record Store(IRValue addr, IRValue src) implements IRInst {
     }
 }
 
-record BrZ(IRValue cond, Label ifZero, Label ifNonZero) implements IRInst {
+record Print(IRValue value) implements IRInst {
     @Override
     public IRTemp dst() {
         return null;
     }
 
+    @Override
+    public List<IRValue> inputs() {
+        return List.of(value);
+    }
+}
+
+record BrZ(IRValue cond, Label ifZero, Label ifNonZero) implements IRTerminator {
     @Override
     public List<IRValue> inputs() {
         return List.of(cond);
     }
 }
 
-record Jmp(Label target) implements IRInst {
-    @Override
-    public IRTemp dst() {
-        return null;
-    }
-
+record Jmp(Label target) implements IRTerminator {
     @Override
     public List<IRValue> inputs() {
         return List.of();
     }
 }
+
+record Hlt() implements IRTerminator {
+    @Override
+    public List<IRValue> inputs() {
+        return List.of();
+    }
+} 
 
 record Phi(IRTemp dst, Map<Label, IRValue> incomings) implements IRInst {
     @Override

@@ -1,0 +1,166 @@
+package nu.henrikvester.haraldlang.codegen.ir;
+
+import nu.henrikvester.haraldlang.ast.expressions.*;
+import nu.henrikvester.haraldlang.ast.lvalue.LValueVisitor;
+import nu.henrikvester.haraldlang.ast.statements.*;
+import nu.henrikvester.haraldlang.exceptions.CompilerException;
+import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
+import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
+
+import java.util.*;
+
+public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<Void>, LValueVisitor<Void> {
+    // Ephemeral -- during resolution, we pop and push scopes as we enter and exit blocks
+    private final Deque<Map<String, VarSlot>> scopes = new ArrayDeque<>();
+    // Maps from **exact** identifier expressions to the variable slots they refer to
+    private final IdentityHashMap<Var, VarSlot> use2slot = new IdentityHashMap<>();
+    // Maps from **exact** declarations to the variable slots they introduce
+    private final IdentityHashMap<Declaration, VarSlot> decl2slot = new IdentityHashMap<>();
+    private int nextId = 0;
+
+    public VarSlot slot(Var var) {
+        if (!use2slot.containsKey(var))
+            throw new IllegalArgumentException("No slot for declaration: " + var);
+        return use2slot.get(var);
+    }
+
+    public VarSlot slot(Declaration declaration) {
+        if (!decl2slot.containsKey(declaration))
+            throw new IllegalArgumentException("No slot for declaration: " + declaration);
+        return decl2slot.get(declaration);
+    }
+
+    private void enter() {
+        scopes.push(new HashMap<>());
+    }
+
+    private void exit() {
+        scopes.pop();
+    }
+
+    private VarSlot lookup(String identifier) {
+        for (Map<String, VarSlot> scope : scopes) {
+            if (scope.containsKey(identifier)) {
+                return scope.get(identifier);
+            }
+        }
+        return null;
+    }
+
+    private Map<String, VarSlot> currentScope() {
+        Map<String, VarSlot> ret = scopes.peek();
+        if (ret == null) {
+            throw new IllegalStateException("No current scope");
+        }
+        return ret;
+    }
+
+    @Override
+    public Void visitAddressOfExpression(AddressOfExpression expr) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Void visitLiteralExpression(LiteralExpression expr) {
+        // do nothing
+        return null;
+    }
+
+    @Override
+    public Void visitBinaryExpression(BinaryExpression expr) throws HaraldLangException {
+        expr.left().accept(this);
+        expr.right().accept(this);
+        return null;
+    }
+
+    @Override
+    public Void visitVar(Var expr) throws CompilerException {
+        // get the slot for this identifier **at the current scope**
+        VarSlot slot = lookup(expr.identifier());
+        if (slot == null) throw CompilerException.undeclaredVariable(expr);
+        // store the mapping from this **exact expression** to the slot
+        use2slot.put(expr, slot);
+        return null;
+    }
+
+    @Override
+    public Void visitForLoopStatement(ForLoopStatement stmt) throws HaraldLangException {
+        enter();
+        stmt.initial().accept(this);
+        stmt.condition().accept(this);
+        // TODO implement locals here? Or is it enough to scope the block around everything?
+        stmt.body().accept(this);
+        stmt.update().accept(this); // make sure update comes after so we don't get away with declaring variables in the update
+        exit();
+        return null;
+    }
+
+    @Override
+    public Void visitBlockStatement(BlockStatement stmt) throws HaraldLangException {
+        enter();
+        for (var s : stmt.statements()) {
+            s.accept(this);
+        }
+        exit();
+        return null;
+    }
+
+    @Override
+    public Void visitDeclaration(Declaration declaration) throws HaraldLangException {
+        // create a new var slot to represent this variable
+        var slot = new VarSlot(nextId++, declaration.identifier());
+        // add it to the current scope so we can find it **in the current scope**
+        currentScope().put(declaration.identifier(), slot);
+        // add the mapping from this **exact declaration** to the slot so we can find it all the time
+        decl2slot.put(declaration, slot);
+
+        var initializer = declaration.expression();
+        if (initializer != null) {
+            initializer.accept(this);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Void visitAssignment(Assignment stmt) throws HaraldLangException {
+        // no name resolution here, but we need to visit the value expression
+        stmt.value().accept(this);
+        return null;
+    }
+
+    @Override
+    public Void visitIfStatement(IfStatement stmt) throws HaraldLangException {
+        stmt.condition().accept(this);
+        enter();
+        stmt.thenBody().accept(this);
+        exit();
+        if (stmt.elseBody() != null) {
+            enter();
+            stmt.elseBody().accept(this);
+            exit();
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitLiftedExpressionStatement(LiftedExpressionStatement stmt) throws HaraldLangException {
+        stmt.expression().accept(this);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStatement(PrintStatement stmt) throws HaraldLangException {
+        stmt.expr().accept(this);
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStatement(WhileStatement stmt) throws HaraldLangException {
+        stmt.condition().accept(this);
+        enter();
+        stmt.body().accept(this);
+        exit();
+        return null;
+    }
+}

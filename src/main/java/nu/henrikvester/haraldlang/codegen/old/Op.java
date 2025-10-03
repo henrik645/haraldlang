@@ -1,4 +1,4 @@
-package nu.henrikvester.haraldlang.codegen;
+package nu.henrikvester.haraldlang.codegen.old;
 
 public enum Op {
     CONST,

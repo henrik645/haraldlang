@@ -1,4 +1,4 @@
-package nu.henrikvester.haraldlang.codegen;
+package nu.henrikvester.haraldlang.codegen.old;
 
 import nu.henrikvester.haraldlang.codegen.ir.IRInst;
 import nu.henrikvester.haraldlang.codegen.ir.IRTemp;

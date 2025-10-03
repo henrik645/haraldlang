@@ -14,6 +14,11 @@ public class BinaryOperators {
         public String symbol() {
             return "+";
         }
+
+        @Override
+        public String toString() {
+            return symbol();
+        }
     };
 
     public static final BinaryOperator minus = new BinaryOperator() {
@@ -25,6 +30,11 @@ public class BinaryOperators {
         @Override
         public String symbol() {
             return "-";
+        }
+
+        @Override
+        public String toString() {
+            return symbol();
         }
     };
 
@@ -38,6 +48,11 @@ public class BinaryOperators {
         public String symbol() {
             return ">";
         }
+
+        @Override
+        public String toString() {
+            return symbol();
+        }
     };
 
     public static final BinaryOperator greaterThanOrEqual = new BinaryOperator() {
@@ -49,6 +64,11 @@ public class BinaryOperators {
         @Override
         public String symbol() {
             return ">=";
+        }
+
+        @Override
+        public String toString() {
+            return symbol();
         }
     };
 
@@ -62,6 +82,11 @@ public class BinaryOperators {
         public String symbol() {
             return "<";
         }
+
+        @Override
+        public String toString() {
+            return symbol();
+        }
     };
 
     public static final BinaryOperator lesserThanOrEqual = new BinaryOperator() {
@@ -73,6 +98,11 @@ public class BinaryOperators {
         @Override
         public String symbol() {
             return "<=";
+        }
+
+        @Override
+        public String toString() {
+            return symbol();
         }
     };
 
@@ -86,6 +116,11 @@ public class BinaryOperators {
         public String symbol() {
             return "=";
         }
+
+        @Override
+        public String toString() {
+            return symbol();
+        }
     };
 
     public static final BinaryOperator notEqual = new BinaryOperator() {
@@ -97,6 +132,11 @@ public class BinaryOperators {
         @Override
         public String symbol() {
             return "!=";
+        }
+
+        @Override
+        public String toString() {
+            return symbol();
         }
     };
 

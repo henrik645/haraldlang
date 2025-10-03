@@ -1,8 +1,8 @@
-package nu.henrikvester.haraldlang.codegen;
+package nu.henrikvester.haraldlang.codegen.old;
 
 public class Test {
     public static void main(String[] args) {
-        var tr = new Translator();
+//        var tr = new Translator();
 
 //        // translating x = 5 + 3;
 //        var c1 = tr.emitConst(5);
@@ -10,6 +10,6 @@ public class Test {
 //        var sum = tr.emitAdd(c1, c2);
 //        tr.setVariable("x", sum);
 
-        tr.printDebugInfo();
+//        tr.printDebugInfo();
     }
 }
