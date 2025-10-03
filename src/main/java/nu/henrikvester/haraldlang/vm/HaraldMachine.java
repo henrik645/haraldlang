@@ -5,11 +5,11 @@ import nu.henrikvester.haraldlang.exceptions.HaraldMachineException;
 
 public class HaraldMachine {
     private final Environment environment = new Environment();
-    
+
     public Environment getEnvironment() {
         return environment;
     }
-    
+
     public void run(Statement statement) throws HaraldMachineException {
         statement.execute(this);
     }

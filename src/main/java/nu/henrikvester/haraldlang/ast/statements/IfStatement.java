@@ -8,17 +8,17 @@ public class IfStatement implements Statement {
     private final Expression condition;
     private final Statement thenBody;
     private final Statement elseBody;
-    
+
     public IfStatement(Expression condition, Statement thenBody, Statement elseBody) {
         this.condition = condition;
         this.thenBody = thenBody;
         this.elseBody = elseBody;
     }
-    
+
     public IfStatement(Expression condition, Statement thenBody) {
         this(condition, thenBody, null);
     }
-    
+
     @Override
     public void execute(HaraldMachine vm) throws HaraldMachineException {
         var result = condition.evaluate(vm.getEnvironment());

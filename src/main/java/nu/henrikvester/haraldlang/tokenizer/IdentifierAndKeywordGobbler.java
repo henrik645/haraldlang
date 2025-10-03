@@ -9,14 +9,14 @@ class IdentifierAndKeywordGobbler implements Gobbler {
     }
 
     @Override
-    public boolean isPart(char c) { 
+    public boolean isPart(char c) {
         return Character.isLetterOrDigit(c) || c == '_';
     }
 
     @Override
     public TokenType getTokenType(String lexeme) {
         return switch (lexeme) {
-            case "let" -> TokenType.KEYWORD_LET; 
+            case "let" -> TokenType.KEYWORD_LET;
             case "fun" -> TokenType.KEYWORD_FUN;
             case "print" -> TokenType.KEYWORD_PRINT;
             case "if" -> TokenType.KEYWORD_IF;

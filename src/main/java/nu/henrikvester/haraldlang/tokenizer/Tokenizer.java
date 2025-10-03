@@ -6,12 +6,12 @@ import nu.henrikvester.haraldlang.core.TokenType;
 import nu.henrikvester.haraldlang.exceptions.TokenizerException;
 
 public class Tokenizer {
+    private final static Gobbler[] GOBBLERS = new Gobbler[]{new NumberGobbler(), new IdentifierAndKeywordGobbler()};
     private final String input;
     private char currChar;
     private int currIndex = 0;
     private int currCol = 0;
     private int currRow = 0;
-    private final static Gobbler[] GOBBLERS = new Gobbler[] { new NumberGobbler(), new IdentifierAndKeywordGobbler()};
 
     public Tokenizer(String input) {
         this.input = input;
@@ -24,14 +24,14 @@ public class Tokenizer {
     private boolean areMoreCharacters() {
         return input.length() > currIndex + 1;
     }
-    
+
     private void advance() {
         if (!areMoreCharacters()) return;
         currIndex++;
         advanceSourceLocation();
         currChar = input.charAt(currIndex);
     }
-    
+
     private void advanceSourceLocation() {
         if (currChar == '\n') {
             currRow++;
@@ -52,14 +52,14 @@ public class Tokenizer {
         if (!areMoreCharacters()) {
             return eofToken();
         }
-        
+
         if (currChar == '#') {
             while (areMoreCharacters() && currChar != '\n') {
                 advance();
             }
             return getNextToken();
         }
-        
+
         // Handle all gobblers (multicharacter tokens)
         for (Gobbler gobbler : GOBBLERS) {
             // Handle identifiers and keywords
@@ -128,11 +128,11 @@ public class Tokenizer {
         }
         return new Token(tokenType, lexeme, location);
     }
-    
+
     private Token eofToken() {
         return new Token(TokenType.EOF, "", currentSourceLocation());
     }
-    
+
     private SourceLocation currentSourceLocation() {
         return new SourceLocation(currRow, currCol);
     }

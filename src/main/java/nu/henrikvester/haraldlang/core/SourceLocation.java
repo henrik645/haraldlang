@@ -5,7 +5,7 @@ public record SourceLocation(int line, int column) {
     public String toString() {
         return "line " + line + ", column " + column;
     }
-    
+
     public void pointOut(String code, String message, int context) {
         final String ANSI_RED = "\u001B[31m"; // TODO place in terminal utility class
         final String ANSI_RESET = "\u001B[0m";
@@ -24,11 +24,11 @@ public record SourceLocation(int line, int column) {
             }
         }
     }
-    
+
     public void pointOut(String code, String message) {
-        pointOut(code, message,2);
+        pointOut(code, message, 2);
     }
-    
+
     private int clamp(int min, int value, int max) {
         return Math.max(min, Math.min(value, max));
     }

@@ -7,16 +7,16 @@ import nu.henrikvester.haraldlang.vm.HaraldMachine;
 public class App {
     public static void main(String[] args) {
         var input = """
-        {
-        @@@
-            for (let x = 0; x < 10; let x = x + 1;) {
-                print test;
-                print &x;
-                # print *x;
-                print x;
-            }
-        };
-        """;
+                {
+                @@@
+                    for (let x = 0; x < 10; let x = x + 1;) {
+                        print test;
+                        print &x;
+                        # print *x;
+                        print x;
+                    }
+                };
+                """;
 
         try {
             var ast = new Parser(input).parse();

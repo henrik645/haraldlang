@@ -5,6 +5,7 @@ import nu.henrikvester.haraldlang.core.TokenType;
 interface Gobbler {
     /**
      * Checks if the character can be the start of a token.
+     *
      * @param c the character to check
      * @return true if the character can be the start of a token, false otherwise
      */
@@ -12,6 +13,7 @@ interface Gobbler {
 
     /**
      * Checks if the character can be part of a token.
+     *
      * @param c the character to check
      * @return true if the character can be part of a token, false otherwise
      */
@@ -19,6 +21,7 @@ interface Gobbler {
 
     /**
      * Returns the TokenType for the given lexeme.
+     *
      * @param lexeme the lexeme to check
      * @return the TokenType for the given lexeme
      */

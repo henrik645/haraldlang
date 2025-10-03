@@ -12,7 +12,7 @@ public class BinaryOperators {
     public static final BinaryOperator lesserThanOrEqual = (left, right) -> Word.ofBoolean(left.value() <= right.value());
     public static final BinaryOperator equal = (left, right) -> Word.ofBoolean(left.value() == right.value());
     public static final BinaryOperator notEqual = (left, right) -> Word.ofBoolean(left.value() != right.value());
-    
+
     public static BinaryOperator fromTokenType(TokenType tokenType) {
         switch (tokenType) {
             case PLUS -> {
@@ -45,7 +45,8 @@ public class BinaryOperators {
 
     public static boolean tokenTypeIsOperator(TokenType type) {
         return switch (type) {
-            case PLUS, MINUS, EQUALS, NOT_EQUALS, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESSER_THAN, LESSER_THAN_OR_EQUAL -> true;
+            case PLUS, MINUS, EQUALS, NOT_EQUALS, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESSER_THAN,
+                 LESSER_THAN_OR_EQUAL -> true;
             default -> false;
         };
     }

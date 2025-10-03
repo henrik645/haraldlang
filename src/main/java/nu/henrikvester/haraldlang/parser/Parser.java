@@ -2,17 +2,20 @@ package nu.henrikvester.haraldlang.parser;
 
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.statements.*;
-import nu.henrikvester.haraldlang.core.*;
-import nu.henrikvester.haraldlang.exceptions.*;
+import nu.henrikvester.haraldlang.core.SourceLocation;
+import nu.henrikvester.haraldlang.core.Token;
+import nu.henrikvester.haraldlang.core.TokenType;
+import nu.henrikvester.haraldlang.exceptions.ParserException;
+import nu.henrikvester.haraldlang.exceptions.TokenizerException;
 import nu.henrikvester.haraldlang.tokenizer.Tokenizer;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Parser {
+    private final static boolean DEBUG = false;
     private final List<Token> tokens = new ArrayList<>();
     private SourceLocation lastLocation;
-    private final static boolean DEBUG = false;
 
     public Parser(String input) throws TokenizerException {
         var tokenizer = new Tokenizer(input);
@@ -27,13 +30,13 @@ public class Parser {
             if (token.type() == TokenType.EOF) break;
         }
     }
-    
+
     private Token pop() {
         Token ret = tokens.remove(0);
         lastLocation = ret.location();
         return ret;
     }
-    
+
     private Token peek() {
         if (tokens.isEmpty()) return null; // I don't think this ever happens? EOF should be the last token
         return tokens.get(0);
@@ -48,7 +51,7 @@ public class Parser {
             case IDENTIFIER -> new IdentifierExpression(token.lexeme(), token.location());
             default -> throw ParserException.unexpectedToken("expression", token.type().name(), token.location());
         };
-        
+
         var operator = peek();
         if (operator == null) {
             return left;
@@ -61,7 +64,7 @@ public class Parser {
             return left;
         }
     }
-    
+
     public Statement parse() throws ParserException {
         var ret = parseStatement();
         var next = peek();
@@ -70,7 +73,7 @@ public class Parser {
         }
         return ret;
     }
-    
+
     private Statement parseStatement() throws ParserException {
         var next = peek();
         if (next == null) {
@@ -83,10 +86,10 @@ public class Parser {
                 parseExact(TokenType.EQUALS);
                 var expression = parseExpression();
                 parseExact(TokenType.SEMICOLON);
-                
+
                 return new Assignment(identifier, expression);
             }
-            case KEYWORD_PRINT -> { 
+            case KEYWORD_PRINT -> {
                 pop();
                 var exp = parseExpression();
                 parseExact(TokenType.SEMICOLON);
@@ -116,7 +119,7 @@ public class Parser {
             default -> throw ParserException.unexpectedToken("statement", next.type().name(), next.location());
         }
     }
-    
+
     private IfStatement parseIfStatement() throws ParserException {
         pop(); // pop 'if'
         var condition = parseParenthesizedExpression();
@@ -130,14 +133,14 @@ public class Parser {
             return new IfStatement(condition, thenBody);
         }
     }
-    
+
     private WhileStatement parseWhileStatement() throws ParserException {
         pop(); // pop 'while'
         var condition = parseParenthesizedExpression();
         var body = parseStatement();
         return new WhileStatement(condition, body);
     }
-    
+
     private ForLoopStatement parseForLoopStatement() throws ParserException {
         pop(); // pop 'for'
         parseExact(TokenType.LPAREN);
@@ -149,7 +152,7 @@ public class Parser {
         var body = parseStatement();
         return new ForLoopStatement(initializer, condition, increment, body);
     }
-    
+
     private Expression parseParenthesizedExpression() throws ParserException {
         parseExact(TokenType.LPAREN);
         var condition = parseExpression();
@@ -162,7 +165,7 @@ public class Parser {
         parseExact(TokenType.SEMICOLON);
         return new LiftedExpressionStatement(exp);
     }
-    
+
     private String parseIdentifier() throws ParserException {
         var token = pop();
         if (token.type() != TokenType.IDENTIFIER) {
@@ -170,7 +173,7 @@ public class Parser {
         }
         return token.lexeme();
     }
-    
+
     private void parseExact(TokenType tokenType) throws ParserException {
         var token = pop();
         if (token.type() != tokenType) {

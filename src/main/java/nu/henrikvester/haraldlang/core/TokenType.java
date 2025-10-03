@@ -9,7 +9,7 @@ public enum TokenType {
     KEYWORD_ELSE,
     KEYWORD_WHILE,
     KEYWORD_FOR,
-    
+
     // Symbols
     LPAREN,
     RPAREN,
@@ -28,11 +28,11 @@ public enum TokenType {
     EXCLAMATION, // '!'
     AMPERSAND,
     ASTERISK,
-    
+
     // Others
     IDENTIFIER,
     NUMBER,
-    
+
     // End of file
     EOF
 }

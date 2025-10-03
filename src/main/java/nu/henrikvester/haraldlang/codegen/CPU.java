@@ -8,10 +8,10 @@ public class CPU {
     private boolean zeroFlag;
 
     private byte pc;
-    private byte[] ram;
+    private final byte[] ram;
 
     private boolean halted;
-    
+
     public CPU() {
         ram = new byte[256];
     }
@@ -23,7 +23,7 @@ public class CPU {
 
 
     public void run() {
-        while(!halted) {
+        while (!halted) {
             execute();
         }
     }
@@ -41,7 +41,6 @@ public class CPU {
     }
 
 
-
     public void execute() {
         byte instruction = fetch();
         int opCode = (instruction >> 4) & 0x0F;
@@ -52,9 +51,9 @@ public class CPU {
         byte registerB = regs[registerAddress2];
 
         boolean wroteA = false;
-        
+
         Instruction operation = Instruction.fromCode(opCode);
-        switch(operation) {
+        switch (operation) {
             case ADD:
                 registerA = (byte) (registerA + registerB);
                 wroteA = true;
@@ -96,7 +95,7 @@ public class CPU {
                 wroteA = true;
                 break;
             case XOR:
-                registerA = (byte)(registerA ^ registerB);
+                registerA = (byte) (registerA ^ registerB);
                 wroteA = true;
                 break;
             case JMZ:
