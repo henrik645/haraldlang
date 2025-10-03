@@ -1,34 +1,40 @@
 package nu.henrikvester.haraldlang.codegen;
 
+import nu.henrikvester.haraldlang.codegen.ir.IRInst;
+import nu.henrikvester.haraldlang.codegen.ir.IRTemp;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class Liveness {
-    static Map<Variable, int[]> liveIntervals(List<Instr> instructions) {
+    static Map<IRTemp, int[]> liveIntervals(List<IRInst> instructions) {
         int n = instructions.size();
         // map from variable id to the index where it is defined
-        Map<Variable, Integer> defIndex = new HashMap<>();
+        Map<IRTemp, Integer> defIndex = new HashMap<>();
         // map from variable id to the index where it is last used
-        Map<Variable, Integer> lastUseIndex = new HashMap<>();
+        Map<IRTemp, Integer> lastUseIndex = new HashMap<>();
         for (int codeLocation = 0; codeLocation < n; codeLocation++) {
-            defIndex.put(instructions.get(codeLocation).result(), codeLocation);
+            var result = instructions.get(codeLocation).dst();
+            if (result != null) {
+                defIndex.put(result, codeLocation);
+            }
         }
 
         for (int codeLocation = n - 1; codeLocation >= 0; codeLocation--) {
-            for (var variableId : instructions.get(codeLocation).inputs()) {
+            for (var variableId : instructions.get(codeLocation).temps()) {
                 lastUseIndex.putIfAbsent(variableId, codeLocation);
             }
         }
 
         // map from variable id to its live interval [defIndex, lastUse]
-        Map<Variable, int[]> liveIntervals = new TreeMap<>();
+        Map<IRTemp, int[]> liveIntervals = new TreeMap<>();
         for (var inst : instructions) {
-            int def = defIndex.get(inst.result());
+            int def = defIndex.get(inst.dst());
             // default value: last use said to be before definition if never used
-            int lastUse = lastUseIndex.getOrDefault(inst.result(), def - 1);
-            liveIntervals.put(inst.result(), new int[]{def, lastUse});
+            int lastUse = lastUseIndex.getOrDefault(inst.dst(), def - 1);
+            liveIntervals.put(inst.dst(), new int[]{def, lastUse});
         }
         return liveIntervals;
     }

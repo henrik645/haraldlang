@@ -1,14 +1,16 @@
 package nu.henrikvester.haraldlang.codegen;
 
+import nu.henrikvester.haraldlang.codegen.ir.IRTemp;
+
 import java.util.Map;
 import java.util.TreeMap;
 
 public class RegisterAllocator {
     private final static int NUM_REGISTERS = 4;
     // Map which register number currently contains which SSA variable
-    private final Map<Integer, Variable> allocations = new TreeMap<>();
+    private final Map<Integer, IRTemp> allocations = new TreeMap<>();
 
-    public Map<Integer, Variable> getAllocations() {
+    public Map<Integer, IRTemp> getAllocations() {
         return allocations;
     }
 
@@ -17,10 +19,10 @@ public class RegisterAllocator {
      *
      * @return the register number.
      */
-    public int allocateRegister(Variable variable) {
+    public int allocateRegister(IRTemp temp) {
         for (int reg = 0; reg < NUM_REGISTERS; reg++) {
             if (!allocations.containsKey(reg)) {
-                allocations.put(reg, variable);
+                allocations.put(reg, temp);
                 return reg;
             }
         }
@@ -28,13 +30,13 @@ public class RegisterAllocator {
         throw new IllegalStateException("No more registers available");
     }
 
-    public int getRegisterForVariable(Variable variable) {
+    public int getRegisterForVariable(IRTemp temp) {
         for (var entry : allocations.entrySet()) {
-            if (entry.getValue().equals(variable)) {
+            if (entry.getValue().equals(temp)) {
                 return entry.getKey();
             }
         }
-        throw new IllegalStateException("Variable " + variable + " not allocated to any register");
+        throw new IllegalStateException("Variable " + temp + " not allocated to any register");
     }
 
     /**
@@ -43,7 +45,7 @@ public class RegisterAllocator {
      * @param oldVar the old SSA variable to swap out.
      * @param newVar the new SSA variable to swap in.
      */
-    public void swapVariables(Variable oldVar, Variable newVar) {
+    public void swapVariables(IRTemp oldVar, IRTemp newVar) {
         int reg = getRegisterForVariable(oldVar);
         allocations.put(reg, newVar);
     }
@@ -51,10 +53,10 @@ public class RegisterAllocator {
     /**
      * Deallocates the register for the given SSA variable.
      *
-     * @param variable the SSA variable to deallocate the register for.
+     * @param temp the SSA variable to deallocate the register for.
      */
-    public void deallocateRegisterForVariable(Variable variable) {
-        allocations.values().removeIf(v -> v.equals(variable));
+    public void deallocateRegisterForVariable(IRTemp temp) {
+        allocations.values().removeIf(v -> v.equals(temp));
     }
 
     public boolean hasAllocations() {

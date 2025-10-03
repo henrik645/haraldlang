@@ -24,13 +24,13 @@ public class Translator {
         return registerAllocator;
     }
 
-    public Variable emitConst(int value) {
-        return block.emitConst(value);
-    }
+//    public Variable emitConst(int value) {
+//        return block.emitConst(value);
+//    }
 
-    public Variable emitAdd(Variable left, Variable right) {
-        return block.emitAdd(left, right);
-    }
+//    public Variable emitAdd(Variable left, Variable right) {
+//        return block.emitAdd(left, right);
+//    }
 
     public void setVariable(String name, Variable variable) {
         env.put(name, variable);
@@ -61,12 +61,13 @@ public class Translator {
             if (used) {
                 System.out.printf("v%-2d : [%d, %d]%n", id, interval[0], interval[1]);
                 var registerNbr = registerAllocator.allocateRegister(entry.getKey());
-//                System.out.println("Allocating r" + registerNbr + " to " + id);
             } else {
                 System.out.printf("v%-2d : [%d, %d] (never used)%n", id, interval[0], interval[1]);
             }
         }
 
+
+        int maxRegistersNeeded = 0;
         System.out.println();
         System.out.println("Live sets per index:");
         for (int i = 0; i < code.size(); i++) {
@@ -75,10 +76,14 @@ public class Translator {
                     .filter(e -> e.getValue()[0] <= codeLocation && codeLocation <= e.getValue()[1])
                     .map(e -> e.getKey().toString())
                     .toList();
+            maxRegistersNeeded = Math.max(maxRegistersNeeded, live.size());
             var liveStr = String.join(", ", live);
             var registerReport = live.size() > 4 ? " (memory needed)" : "";
             System.out.printf("    after %d: %s%s%n", i, liveStr, registerReport);
         }
+
+        System.out.println();
+        System.out.println("At most " + maxRegistersNeeded + " registers needed at once.");
 
         System.out.println();
         System.out.println("Bound variables:");
@@ -86,11 +91,11 @@ public class Translator {
             System.out.println(e.getKey() + " = " + e.getValue());
         }
 
-        System.out.println();
-        System.out.println("Generated ASM:");
-        for (var instruction : code) {
-            System.out.println(instruction.mnemonic(registerAllocator));
-        }
+//        System.out.println();
+//        System.out.println("Generated ASM:");
+//        for (var instruction : code) {
+//            System.out.println(instruction.mnemonic(registerAllocator));
+//        }
 
         System.out.println();
         System.out.println("Allocated registers:");

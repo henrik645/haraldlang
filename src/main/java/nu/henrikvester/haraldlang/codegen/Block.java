@@ -1,5 +1,8 @@
 package nu.henrikvester.haraldlang.codegen;
 
+import nu.henrikvester.haraldlang.codegen.ir.IRInst;
+import nu.henrikvester.haraldlang.codegen.ir.IRTemp;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,30 +10,14 @@ import java.util.List;
  * A basic block of instructions in SSA form
  */
 public class Block {
-    private final List<Instr> instructions = new ArrayList<>();
+    private final List<IRInst> instructions = new ArrayList<>();
     private int nextId = 0;
 
-    private Variable nextVariable() {
-        return new Variable(nextId++);
+    private IRTemp getTemp() {
+        return new IRTemp(nextId++);
     }
 
-    Variable emitConst(int constant) {
-        var id = nextVariable();
-        instructions.add(new Instr(id, Op.CONST, new Variable[]{}, constant));
-        return id;
-    }
-
-    Variable emitAdd(Variable left, Variable right) {
-        var id = nextVariable();
-        instructions.add(new Instr(id, Op.ADD, new Variable[]{left, right}, null));
-        return id;
-    }
-
-    void emitAssignment(String name, Variable variable) {
-        // TODO
-    }
-
-    List<Instr> getInstructions() {
+    List<IRInst> getInstructions() {
         return instructions;
     }
 }
