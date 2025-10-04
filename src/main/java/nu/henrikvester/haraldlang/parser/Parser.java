@@ -194,6 +194,7 @@ public class Parser {
         var initializer = parseStatement();
         var condition = parseExpression();
         parseExact(TokenType.SEMICOLON);
+        // throw warning if this is of the form (i = i + 1), i.e., lifted expressions, since the loop variable then won't change!
         var increment = parseStatement();
         parseExact(TokenType.RPAREN);
         var body = parseStatement();

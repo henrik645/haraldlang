@@ -17,6 +17,7 @@ public class BasicBlock {
     private final List<IRInst> instructions = new ArrayList<>();
     @Getter
     private IRTerminator terminator;
+    private final List<BasicBlock> predecessors = new ArrayList<>();
 
     public BasicBlock(Label label) {
         this.label = label;
@@ -33,6 +34,15 @@ public class BasicBlock {
         instructions.add(instruction);
     }
 
+    void addBeforeTerminator(IRInst instruction) {
+        if (isClosed()) {
+            // add last
+            instructions.add(instructions.size(), instruction);
+        } else {
+            add(instruction);
+        }
+    }
+    
     void setTerminator(IRTerminator terminator) {
         if (this.terminator != null) {
             throw new IllegalStateException("Terminator already set");
@@ -40,9 +50,18 @@ public class BasicBlock {
         this.terminator = terminator;
     }
 
+    void addPredecessor(BasicBlock block) {
+        predecessors.add(block);
+    }
+
+    List<BasicBlock> getPredecessors() {
+        return predecessors.stream().distinct().collect(Collectors.toList());
+    }
+
     @Override
     public String toString() {
-        var instructionStr = instructions.stream().map(Object::toString).map(line -> "    " + line).collect(Collectors.joining("\n"));
+        var instructionStrings = instructions.stream().map(Object::toString).map(line -> "    " + line).toList();
+        var instructionStr = instructionStrings.isEmpty() ? "    <none>" : String.join("\n", instructionStrings);
         return label + ":\n  PHI " + phis + "\n" + instructionStr + "\n  TERM " + terminator;
     }
 

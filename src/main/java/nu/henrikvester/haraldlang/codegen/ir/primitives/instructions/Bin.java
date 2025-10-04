@@ -10,4 +10,9 @@ public record Bin(IRTemp dst, BinOp op, IRValue lhs, IRValue rhs) implements IRI
     public List<IRValue> inputs() {
         return List.of(lhs, rhs);
     }
+
+    @Override
+    public String toString() {
+        return dst + " <- " + lhs + " " + op + " " + rhs;
+    }
 }

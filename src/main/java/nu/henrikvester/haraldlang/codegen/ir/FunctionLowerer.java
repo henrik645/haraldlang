@@ -1,35 +1,21 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
+import lombok.RequiredArgsConstructor;
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.statements.*;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Bin;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.BinOp;
-import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRFrameSlot;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Print;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.terminators.BrZ;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.terminators.Jmp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRConst;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<IRValue> {
-    private final TranslatorImpl tr;
-    //    private final Map<VarSlot, IRFrameSlot> variableMap = new HashMap<>();
-    private final Map<VarSlot, IRValue> variableMap = new HashMap<>();
-    private final Bindings bindings;
-
-    public CodeGenerator(TranslatorImpl translator, Bindings resolver, List<VarSlot> locals) {
-        this.tr = translator;
-        this.bindings = resolver;
-        // generate frame slots for all local variables
-        for (var local : locals) {
-            variableMap.put(local, new IRFrameSlot(local.id()));
-        }
-    }
-
-//    IRFrameSlot frameOf(VarSlot slot) {
-//        return variableMap.get(slot);
-//    }
+@RequiredArgsConstructor
+public class FunctionLowerer implements StatementVisitor<Void>, ExpressionVisitor<IRValue> {
+    private final FunctionBuilder23 b;
 
     @Override
     public IRValue visitAddressOfExpression(AddressOfExpression expr) {
@@ -38,50 +24,49 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
 
     @Override
     public IRValue visitLiteralExpression(LiteralExpression expr) {
-        return tr.constInt(expr.value());
+        return new IRConst(expr.value());
     }
 
     @Override
     public IRValue visitBinaryExpression(BinaryExpression expr) throws HaraldLangException {
-        var a = expr.left().accept(this);
-        var b = expr.right().accept(this);
-        return tr.bin(BinOp.fromString(expr.op().symbol()), a, b);
+        var binOp = BinOp.fromString(expr.op().symbol());
+        var res = b.newTemp();
+        b.emit(new Bin(res, binOp, expr.left().accept(this), expr.right().accept(this)));
+        return res;
     }
 
     @Override
-    public IRValue visitVar(Var expr) {
-        var slot = bindings.slot(expr); // resolve slot using name resolver
-        var frame = variableMap.get(slot); // resolve frame from slot
-        return tr.load(frame); // load value from frame (or wherever it is stored)
+    public IRValue visitVar(Var expr) throws HaraldLangException {
+        return b.readVar(expr);
     }
 
     @Override
     public Void visitForLoopStatement(ForLoopStatement stmt) throws HaraldLangException {
-        var conditionLabel = tr.label("for_cond");
-        var bodyLabel = tr.label("for_body");
-        var endLabel = tr.label("for_end");
+        var conditionLabel = b.newLabel("for_cond");
+        var bodyLabel = b.newLabel("for_body");
+        var endLabel = b.newLabel("for_end");
 
         stmt.initial().accept(this);
-        tr.jmp(conditionLabel);
+        b.endWith(new Jmp(conditionLabel));
 
-        tr.mark(conditionLabel);
+        b.mark(conditionLabel);
         var cond = stmt.condition().accept(this);
-        tr.brz(cond, endLabel, bodyLabel);
+        b.endWith(new BrZ(cond, endLabel, bodyLabel));
 
-        tr.mark(bodyLabel);
+        b.mark(bodyLabel);
         stmt.body().accept(this);
         stmt.update().accept(this);
-        tr.jmp(conditionLabel);
+        b.endWith(new Jmp(conditionLabel));
 
-        tr.mark(endLabel);
+        b.mark(endLabel);
 
         return null;
     }
 
     @Override
     public Void visitBlockStatement(BlockStatement block) throws HaraldLangException {
-        for (var statement : block.statements()) {
-            statement.accept(this);
+        for (var s : block.statements()) {
+            s.accept(this);
         }
         return null;
     }
@@ -93,50 +78,44 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
         var expr = declaration.expression();
         if (expr != null) {
             var value = expr.accept(this);
-            var slot = bindings.slot(declaration);
-            var frame = variableMap.get(slot);
-            tr.store(frame, value);
+            b.setVar(declaration, value);
         }
         return null;
     }
 
     @Override
     public Void visitAssignment(Assignment stmt) throws HaraldLangException {
+        var value = stmt.value().accept(this);
         if (!(stmt.lvalue() instanceof Var var)) {
             throw new NotImplementedException("Can only assign to variables for now");
         }
-        var slot = bindings.slot(var);
-        var frame = variableMap.get(slot);
-
-        var value = stmt.value().accept(this);
-        tr.store(frame, value);
-
+        b.setVar(var, value);
         return null;
     }
 
     @Override
     public Void visitIfStatement(IfStatement stmt) throws HaraldLangException {
-        var thenBlockLabel = tr.label("if_then");
-        var elseBlockLabel = stmt.elseBody() != null ? tr.label("if_else") : null;
-        var endBlockLabel = tr.label("if_end");
+        var thenBlockLabel = b.newLabel("if_then");
+        var elseBlockLabel = stmt.elseBody() != null ? b.newLabel("if_else") : null;
+        var endBlockLabel = b.newLabel("if_end");
 
         var cond = stmt.condition().accept(this);
         var ifZeroTarget = elseBlockLabel != null ? elseBlockLabel : endBlockLabel;
-        tr.brz(cond, ifZeroTarget, thenBlockLabel);
+        b.endWith(new BrZ(cond, ifZeroTarget, thenBlockLabel));
 
         // then block
-        tr.mark(thenBlockLabel);
+        b.mark(thenBlockLabel);
         stmt.thenBody().accept(this);
-        tr.jmp(endBlockLabel);
+        b.endWith(new Jmp(endBlockLabel));
 
         // else block
         if (elseBlockLabel != null) {
-            tr.mark(elseBlockLabel);
+            b.mark(elseBlockLabel);
             stmt.elseBody().accept(this);
-            tr.jmp(endBlockLabel);
+            b.endWith(new Jmp(endBlockLabel));
         }
 
-        tr.mark(endBlockLabel); // should we mark these? what happens otherwise?
+        b.mark(endBlockLabel);
 
         return null;
     }
@@ -150,28 +129,29 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
     @Override
     public Void visitPrintStatement(PrintStatement stmt) throws HaraldLangException {
         var value = stmt.expr().accept(this);
-        tr.print(value);
+        b.emit(new Print(value));
         return null;
     }
 
     @Override
     public Void visitWhileStatement(WhileStatement stmt) throws HaraldLangException {
-        var conditionLabel = tr.label("while_cond");
-        var bodyLabel = tr.label("while_body");
-        var endLabel = tr.label("while_end");
+        var conditionLabel = b.newLabel("while_cond");
+        var bodyLabel = b.newLabel("while_body");
+        var endLabel = b.newLabel("while_end");
 
-        tr.jmp(conditionLabel);
+        b.endWith(new Jmp(conditionLabel));
 
-        tr.mark(conditionLabel);
+        b.mark(conditionLabel);
         var cond = stmt.condition().accept(this);
-        tr.brz(cond, endLabel, bodyLabel);
+        b.endWith(new BrZ(cond, endLabel, bodyLabel));
 
-        tr.mark(bodyLabel);
+        b.mark(bodyLabel);
         stmt.body().accept(this);
-        tr.jmp(conditionLabel);
+        b.endWith(new Jmp(conditionLabel));
 
-        tr.mark(endLabel);
+        b.mark(endLabel);
 
         return null;
+
     }
 }

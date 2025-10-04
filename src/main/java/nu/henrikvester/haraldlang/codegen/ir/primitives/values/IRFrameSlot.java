@@ -8,4 +8,8 @@ package nu.henrikvester.haraldlang.codegen.ir.primitives.values;
  * @param id
  */
 public record IRFrameSlot(int id) implements IRValue {
+    @Override
+    public String toString() {
+        return "[f" + id + "]";
+    }
 }

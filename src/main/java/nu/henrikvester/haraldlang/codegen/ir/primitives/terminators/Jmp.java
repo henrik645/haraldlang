@@ -10,4 +10,9 @@ public record Jmp(Label target) implements IRTerminator {
     public List<IRValue> inputs() {
         return List.of();
     }
+
+    @Override
+    public List<Label> successors() {
+        return List.of(target);
+    }
 }

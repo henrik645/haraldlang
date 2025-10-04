@@ -6,14 +6,13 @@ import nu.henrikvester.haraldlang.parser.Parser;
 public class CompilerTest {
     public static void main(String[] args) throws HaraldLangException {
         var input = """
-                fun main(x) {
-                    print x;
-                    for (declare i = 10; i; let i = i - 1;) {
-                        for (declare j = 10; j; let j = j - 1;) {
-                            declare i = i + 2;
-                            print i + j;
-                        }
+                fun main() {
+                    declare test = 5;
+                    for (declare i = 0; i < 10; let i = i + 1;) {
+                        print i;
+                        let test = 6;
                     }
+                    print test;
                 }
                 """;
 
@@ -29,6 +28,13 @@ public class CompilerTest {
         var irFunction = functionCompiler.lowerFunction(firstFunctionDefinition, bindings);
 
         System.out.println(irFunction);
+
+//        var ssa = new SSA();
+//        for (var block : irFunction.basicBlocks()) {
+//            ssa.convertToSSA(block);
+//        }
+//        System.out.println("\n\n---------------------------------------------------\nSSA:\n");
+//        System.out.println(irFunction);
 
 //        var blocks = fb.getBlocks();
 //

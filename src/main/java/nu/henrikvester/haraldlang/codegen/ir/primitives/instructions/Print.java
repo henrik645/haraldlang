@@ -15,4 +15,9 @@ public record Print(IRValue value) implements IRInst {
     public List<IRValue> inputs() {
         return List.of(value);
     }
+
+    @Override
+    public String toString() {
+        return "print " + value;
+    }
 }

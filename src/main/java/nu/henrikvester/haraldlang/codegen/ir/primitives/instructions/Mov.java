@@ -10,4 +10,9 @@ public record Mov(IRTemp dst, IRValue src) implements IRInst {
     public List<IRValue> inputs() {
         return List.of(src);
     }
+
+    @Override
+    public String toString() {
+        return dst + " <- " + src;
+    }
 }

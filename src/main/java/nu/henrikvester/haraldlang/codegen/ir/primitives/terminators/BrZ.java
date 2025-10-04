@@ -10,4 +10,9 @@ public record BrZ(IRValue cond, Label ifZero, Label ifNonZero) implements IRTerm
     public List<IRValue> inputs() {
         return List.of(cond);
     }
+
+    @Override
+    public List<Label> successors() {
+        return List.of(ifZero, ifNonZero);
+    }
 }

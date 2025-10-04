@@ -20,11 +20,6 @@ public class TranslatorImpl implements Translator {
     }
 
     @Override
-    public IRTemp temp() {
-        return fb.newTemp();
-    }
-
-    @Override
     public Label label(String purpose) {
         return fb.newLabel(purpose);
     }

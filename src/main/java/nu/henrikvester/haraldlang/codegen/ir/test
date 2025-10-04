@@ -1,0 +1,8 @@
+fun main() {
+    declare x = 5;
+    print x;
+}
+
+L0_main:
+    t0 <- 5; // VarDecl(x) -> t0
+    print t0;

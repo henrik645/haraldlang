@@ -13,8 +13,6 @@ public interface Translator {
     IRConst constInt(int v);
 
     // Value creators
-    IRTemp temp();
-
     Label label(String purpose);
 
     // Emission helpers

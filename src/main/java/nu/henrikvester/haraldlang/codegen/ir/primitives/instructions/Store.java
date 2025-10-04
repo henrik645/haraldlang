@@ -15,4 +15,9 @@ public record Store(IRValue addr, IRValue src) implements IRInst {
     public List<IRValue> inputs() {
         return List.of(addr, src);
     }
+
+    @Override
+    public String toString() {
+        return "store " + src + " -> " + addr;
+    }
 }

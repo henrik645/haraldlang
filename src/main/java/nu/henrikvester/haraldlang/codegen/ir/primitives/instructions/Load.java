@@ -10,4 +10,9 @@ public record Load(IRTemp dst, IRValue addr) implements IRInst {
     public List<IRValue> inputs() {
         return List.of(addr);
     }
+
+    @Override
+    public String toString() {
+        return "load " + dst + " <- " + addr;
+    }
 }
