@@ -5,6 +5,10 @@ import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRConst;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 
+/**
+ * The translator slightly abstracts {@link FunctionBuilder} so that it is easier to use
+ * by providing emission helpers and separating instructions vs. terminators.
+ */
 public interface Translator {
     IRConst constInt(int v);
 

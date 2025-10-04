@@ -27,13 +27,14 @@ public class FunctionBuilder {
     private final Map<Label, BasicBlock> blocks = new LinkedHashMap<>();
     private int nextTemp = 0;
     private int nextLabel = 0;
-    BasicBlock current;
+    @Getter
+    private BasicBlock currentBlock;
 
     public FunctionBuilder(String name) {
         this.name = name;
         var currentBlockLabel = newLabel("func_" + name);
-        this.current = newBlock(currentBlockLabel);
-        this.blocks.put(currentBlockLabel, this.current);
+        this.currentBlock = newBlock(currentBlockLabel);
+        this.blocks.put(currentBlockLabel, this.currentBlock);
     }
 
     IRTemp newTemp() {
@@ -44,25 +45,25 @@ public class FunctionBuilder {
         return new Label(nextLabel++, purpose);
     }
 
-    BasicBlock newBlock(Label label) {
+    private BasicBlock newBlock(Label label) {
         return new BasicBlock(label);
     }
 
-    BasicBlock getOrCreate(Label label) {
+    private BasicBlock getOrCreate(Label label) {
         return blocks.computeIfAbsent(label, this::newBlock);
     }
 
     void emit(IRInst instruction) {
-        current.add(instruction);
+        currentBlock.add(instruction);
     }
 
     void endWith(IRTerminator terminator) {
-        current.setTerminator(terminator);
+        currentBlock.setTerminator(terminator);
     }
 
     void mark(Label label) {
         // TODO should this check that the current block has ended? No, because of fallthrough and we might want to return to it later
-        current = getOrCreate(label);
+        currentBlock = getOrCreate(label);
     }
 
     private BasicBlock getFirstBlock() {
@@ -70,7 +71,7 @@ public class FunctionBuilder {
     }
 
     IRFunction finish() {
-        if (!current.isClosed()) {
+        if (!currentBlock.isClosed()) {
             throw new IllegalStateException("Current block is not closed");
         }
         return new IRFunction(name, getFirstBlock().getLabel(), new ArrayList<>(blocks.values()));

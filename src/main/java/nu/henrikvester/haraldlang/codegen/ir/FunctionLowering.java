@@ -21,7 +21,7 @@ public class FunctionLowering {
 
         functionDefinition.body().accept(gen);
 
-        if (!functionBuilder.current.isClosed()) {
+        if (!functionBuilder.getCurrentBlock().isClosed()) {
             translator.returnVoid();
         }
         return functionBuilder.finish();

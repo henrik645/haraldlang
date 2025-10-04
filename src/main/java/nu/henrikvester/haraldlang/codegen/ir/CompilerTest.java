@@ -7,13 +7,13 @@ public class CompilerTest {
     public static void main(String[] args) throws HaraldLangException {
         var input = """
                 fun main(x) {
-                    declare y;
-                    if (x - 10) {
-                        let y = 42;
-                    } else {
-                        let y = 137;
+                    print x;
+                    for (declare i = 10; i; let i = i - 1;) {
+                        for (declare j = 10; j; let j = j - 1;) {
+                            declare i = i + 2;
+                            print i + j;
+                        }
                     }
-                    print y;
                 }
                 """;
 
