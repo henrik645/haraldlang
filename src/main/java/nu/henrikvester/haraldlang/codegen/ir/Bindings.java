@@ -8,6 +8,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Records the bindings of an entire program.
+ */
 public final class Bindings {
     private final IdentityHashMap<Var, VarSlot> use2slot;
     private final IdentityHashMap<Declaration, VarSlot> decl2slot;

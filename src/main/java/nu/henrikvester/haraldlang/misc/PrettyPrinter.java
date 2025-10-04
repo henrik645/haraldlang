@@ -9,13 +9,6 @@ import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 
 import java.util.ArrayList;
 
-//final class Pretty implements ExprVisitor<String>, StmtVisitor<Void> {
-//    private final StringBuilder out = new StringBuilder();
-//    private int indent = 0;
-//    private void nl() { out.append('\n').append("  ".repeat(indent)); }
-//    // ...
-//}
-
 public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisitor<String>, DefinitionVisitor<String> {
     private final int indentationLevel;
     private int currentIndentationLevel = 0;
