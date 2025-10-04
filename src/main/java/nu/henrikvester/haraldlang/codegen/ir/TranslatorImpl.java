@@ -1,6 +1,12 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
 import lombok.RequiredArgsConstructor;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.*;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.terminators.*;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRConst;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRParam;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 
 import java.util.Objects;
 
@@ -72,5 +78,26 @@ public class TranslatorImpl implements Translator {
     @Override
     public void print(IRValue value) {
         fb.emit(new Print(value));
+    }
+
+    /**
+     * Get the i'th parameter (0-based)
+     *
+     * @param i index of the parameter
+     * @return an IRValue representing the parameter
+     */
+    @Override
+    public IRValue param(int i) {
+        return new IRParam(i);
+    }
+
+    @Override
+    public void returnVoid() {
+        fb.endWith(new RetVoid());
+    }
+
+    @Override
+    public void ret(IRValue returnValue) {
+        fb.endWith(new Ret(returnValue));
     }
 }

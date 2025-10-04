@@ -1,6 +1,10 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
 import lombok.Getter;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.IRFunction;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.IRInst;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.terminators.IRTerminator;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

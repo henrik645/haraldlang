@@ -3,36 +3,38 @@ package nu.henrikvester.haraldlang.codegen.ir;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.parser.Parser;
 
-import java.util.List;
-
 public class CompilerTest {
     public static void main(String[] args) throws HaraldLangException {
         var input = """
-                {
-                    for (declare x = 10; x; let x = x - 1;) {
-                        declare y = x + 2;
-                        print y;
+                fun main(x) {
+                    declare y;
+                    if (x - 10) {
+                        let y = 42;
+                    } else {
+                        let y = 137;
                     }
+                    print y;
                 }
                 """;
 
-        var ast = new Parser(input).parse();
+        var defs = new Parser(input).parse();
 
+        var firstFunctionDefinition = defs.functions().getFirst();
+        
         var nr = new NameResolver();
-        ast.accept(nr);
+        var bindings = nr.resolve(firstFunctionDefinition);
+        System.out.println(bindings);
 
-        var fb = new FunctionBuilder("main");
+        var functionCompiler = new FunctionLowering();
+        var irFunction = functionCompiler.lowerFunction(firstFunctionDefinition, bindings);
 
-        var locals = List.of(new VarSlot(0, "x"), new VarSlot(1, "y"));
-        var codegen = new CodeGenerator(new TranslatorImpl(fb), nr, locals);
+        System.out.println(irFunction);
 
-        ast.accept(codegen);
-
-        var blocks = fb.getBlocks();
-
-        for (var e : blocks.entrySet()) {
-            System.out.println(e.getValue());
-            System.out.println();
-        }
+//        var blocks = fb.getBlocks();
+//
+//        for (var e : blocks.entrySet()) {
+//            System.out.println(e.getValue());
+//            System.out.println();
+//        }
     }
 }

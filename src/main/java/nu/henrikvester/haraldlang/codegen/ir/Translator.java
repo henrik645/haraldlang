@@ -1,5 +1,10 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.BinOp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRConst;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
+
 public interface Translator {
     IRConst constInt(int v);
 
@@ -27,5 +32,11 @@ public interface Translator {
     void hlt();
 
     void mark(Label label);
+
+    IRValue param(int i);
+
+    void returnVoid();
+
+    void ret(IRValue returnValue);
 }
 

@@ -1,6 +1,6 @@
 package nu.henrikvester.haraldlang.codegen.old;
 
-import nu.henrikvester.haraldlang.codegen.ir.IRTemp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
 
 import java.util.Map;
 import java.util.TreeMap;

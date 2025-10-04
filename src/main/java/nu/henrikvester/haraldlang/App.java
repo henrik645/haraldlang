@@ -27,13 +27,17 @@ public class App {
                 """;
 
         try {
-            var ast = new Parser(input).parse();
-            var prettyPrinter = new PrettyPrinter(8);
-            var pretty = ast.accept(prettyPrinter);
-            System.out.println("Pretty printed AST:");
-            System.out.println(pretty);
+            var program = new Parser(input).parse();
+            for (var def : program.functions()) {
+                System.out.println("Parsed function: " + def.name() + " with parameters " + def.parameters());
+                var prettyPrinter = new PrettyPrinter(8);
+                var pretty = def.accept(prettyPrinter);
+                System.out.println("Pretty printed AST:");
+                System.out.println(pretty);
+            }
+            var main = program.functions().stream().filter(f -> f.name().equals("main")).findFirst().orElseThrow(HaraldLangException::noMainFunction);
             var vm = new HaraldMachine();
-            vm.run(ast);
+            vm.run(main.body());
         } catch (HaraldLangException e) {
             e.printError(input);
         }

@@ -1,4 +1,4 @@
-package nu.henrikvester.haraldlang.codegen.ir;
+package nu.henrikvester.haraldlang.codegen.ir.primitives.values;
 
 public record IRTemp(int id) implements IRValue, Comparable<IRTemp> {
     @Override

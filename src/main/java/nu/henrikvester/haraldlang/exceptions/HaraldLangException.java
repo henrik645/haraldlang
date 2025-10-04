@@ -11,6 +11,10 @@ public class HaraldLangException extends Exception {
         this.location = location;
     }
 
+    public static HaraldLangException noMainFunction() {
+        return new HaraldLangException("No main function found", SourceLocation.NONE);
+    }
+
     public void printError(String code) {
         System.err.println("Error: " + getMessage());
         location.pointOut(code, getMessage());

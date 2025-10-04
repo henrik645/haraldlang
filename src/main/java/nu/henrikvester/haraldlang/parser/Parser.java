@@ -1,5 +1,7 @@
 package nu.henrikvester.haraldlang.parser;
 
+import nu.henrikvester.haraldlang.ast.Program;
+import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.statements.*;
 import nu.henrikvester.haraldlang.core.SourceLocation;
@@ -65,13 +67,45 @@ public class Parser {
         }
     }
 
-    public Statement parse() throws ParserException {
-        var ret = parseStatement();
-        var next = peek();
-        if (next != null && next.type() != TokenType.EOF) {
-            throw ParserException.unexpectedToken("end of file", next.type().name(), next.location());
+    public Program parse() throws ParserException {
+        List<FunctionDefinition> functions = new ArrayList<>();
+        for (var next = peek(); next != null && next.type() != TokenType.EOF; next = peek()) {
+            functions.add(parseFunction());
         }
-        return ret;
+        return new Program(functions);
+    }
+
+    private FunctionDefinition parseFunction() throws ParserException {
+        var kw = parseExact(TokenType.KEYWORD_FUN);
+        var name = parseVariable();
+        parseExact(TokenType.LPAREN);
+        var parameters = new ArrayList<Declaration>();
+        while (true) {
+            var next = peek();
+            if (next == null) {
+                throw ParserException.unexpectedEndOfInput(lastLocation);
+            }
+            if (next.type() == TokenType.RPAREN) {
+                break;
+            }
+            var variable = parseVariable();
+            var declaration = new Declaration(variable.identifier(), null, variable.location()); // change here for default function parameters?
+            parameters.add(declaration);
+            next = peek();
+            if (next == null) {
+                throw ParserException.unexpectedEndOfInput(lastLocation);
+            }
+            if (next.type() == TokenType.COMMA) {
+                pop(); // pop ','
+            } else if (next.type() != TokenType.RPAREN) {
+                throw ParserException.unexpectedToken("',' or ')'", next.type().name(), next.location());
+            }
+        }
+        parseExact(TokenType.RPAREN);
+
+        var body = parseStatement();
+
+        return new FunctionDefinition(name.identifier(), parameters, body, kw.location());
     }
 
     private Statement parseStatement() throws ParserException {
@@ -187,10 +221,11 @@ public class Parser {
         return new Var(token.lexeme(), token.location());
     }
 
-    private void parseExact(TokenType tokenType) throws ParserException {
+    private Token parseExact(TokenType tokenType) throws ParserException {
         var token = pop();
         if (token.type() != tokenType) {
             throw ParserException.unexpectedToken(tokenType.name(), token.type().name(), token.location());
         }
+        return token;
     }
 }

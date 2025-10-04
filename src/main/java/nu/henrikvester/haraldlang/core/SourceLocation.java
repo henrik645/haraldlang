@@ -1,6 +1,12 @@
 package nu.henrikvester.haraldlang.core;
 
 public record SourceLocation(int line, int column) {
+    public static final SourceLocation NONE = new SourceLocation(-1, -1);
+
+    private boolean isValid() {
+        return line >= 0 && column >= 0;
+    }
+
     @Override
     public String toString() {
         return "line " + line + ", column " + column;
@@ -17,10 +23,12 @@ public record SourceLocation(int line, int column) {
         var pointer = " ".repeat(this.column + indentation) + "^";
         for (int i = startRange; i <= endRange; i++) {
             System.err.printf("%s%3d %s%n", i == this.line ? ANSI_RED : "", i + 1, lines[i]); // +1 to convert 0-based to 1-based line number
-            if (i == this.line) { // point to the error line
-                // TODO print in colors
-                var messageLine = message == null ? "" : "----- " + message;
-                System.err.println(pointer + messageLine + ANSI_RESET);
+            if (this.isValid()) {
+                if (i == this.line) { // point to the error line
+                    // TODO print in colors
+                    var messageLine = message == null ? "" : "----- " + message;
+                    System.err.println(pointer + messageLine + ANSI_RESET);
+                }
             }
         }
     }

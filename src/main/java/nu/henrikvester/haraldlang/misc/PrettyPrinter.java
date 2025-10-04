@@ -1,5 +1,7 @@
 package nu.henrikvester.haraldlang.misc;
 
+import nu.henrikvester.haraldlang.ast.definitions.DefinitionVisitor;
+import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.statements.*;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
@@ -14,7 +16,7 @@ import java.util.ArrayList;
 //    // ...
 //}
 
-public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisitor<String> {
+public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisitor<String>, DefinitionVisitor<String> {
     private final int indentationLevel;
     private int currentIndentationLevel = 0;
     private int previousIndentationLevel = 0;
@@ -125,5 +127,15 @@ public class PrettyPrinter implements StatementVisitor<String>, ExpressionVisito
     public String visitDeclaration(Declaration declaration) throws HaraldLangException {
         var expr = declaration.expression() != null ? " = " + declaration.expression().accept(this) : "";
         return indentation() + "declare " + declaration.identifier() + expr + ";";
+    }
+
+    @Override
+    public String visitFunctionDefinition(FunctionDefinition functionDefinition) throws HaraldLangException {
+        var paramList = new ArrayList<String>();
+        for (var param : functionDefinition.parameters()) {
+            paramList.add(param.accept(this));
+        }
+        var paramStr = paramList.isEmpty() ? "" : String.join(", ", paramList);
+        return "fun " + functionDefinition.name() + "(" + paramStr + ") " + functionDefinition.body().accept(this);
     }
 }

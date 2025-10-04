@@ -1,7 +1,7 @@
 package nu.henrikvester.haraldlang.codegen.old;
 
-import nu.henrikvester.haraldlang.codegen.ir.IRInst;
-import nu.henrikvester.haraldlang.codegen.ir.IRTemp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.IRInst;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
 
 import java.util.HashMap;
 import java.util.List;

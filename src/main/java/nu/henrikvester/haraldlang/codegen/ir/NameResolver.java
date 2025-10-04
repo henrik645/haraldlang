@@ -1,5 +1,7 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
+import nu.henrikvester.haraldlang.ast.definitions.DefinitionVisitor;
+import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.lvalue.LValueVisitor;
 import nu.henrikvester.haraldlang.ast.statements.*;
@@ -9,26 +11,40 @@ import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 
 import java.util.*;
 
-public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<Void>, LValueVisitor<Void> {
+public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<Void>, LValueVisitor<Void>, DefinitionVisitor<Void> {
     // Ephemeral -- during resolution, we pop and push scopes as we enter and exit blocks
     private final Deque<Map<String, VarSlot>> scopes = new ArrayDeque<>();
     // Maps from **exact** identifier expressions to the variable slots they refer to
     private final IdentityHashMap<Var, VarSlot> use2slot = new IdentityHashMap<>();
     // Maps from **exact** declarations to the variable slots they introduce
     private final IdentityHashMap<Declaration, VarSlot> decl2slot = new IdentityHashMap<>();
+    private final Map<FunctionDefinition, List<VarSlot>> function2locals = new HashMap<>();
     private int nextId = 0;
 
-    public VarSlot slot(Var var) {
-        if (!use2slot.containsKey(var))
-            throw new IllegalArgumentException("No slot for declaration: " + var);
-        return use2slot.get(var);
+    public Bindings resolve(FunctionDefinition functionDefinition) throws HaraldLangException {
+        enter();
+        for (var param : functionDefinition.parameters()) {
+            newVarSlot(param);
+        }
+        functionDefinition.body().accept(this);
+        var locals = new LinkedHashSet<>(decl2slot.values());
+        function2locals.put(functionDefinition, List.copyOf(locals));
+        exit();
+
+        return new Bindings(use2slot, decl2slot, function2locals);
     }
 
-    public VarSlot slot(Declaration declaration) {
-        if (!decl2slot.containsKey(declaration))
-            throw new IllegalArgumentException("No slot for declaration: " + declaration);
-        return decl2slot.get(declaration);
-    }
+//    public VarSlot slot(Var var) {
+//        if (!use2slot.containsKey(var))
+//            throw new IllegalArgumentException("No slot for declaration: " + var);
+//        return use2slot.get(var);
+//    }
+
+//    public VarSlot slot(Declaration declaration) {
+//        if (!decl2slot.containsKey(declaration))
+//            throw new IllegalArgumentException("No slot for declaration: " + declaration);
+//        return decl2slot.get(declaration);
+//    }
 
     private void enter() {
         scopes.push(new HashMap<>());
@@ -105,14 +121,19 @@ public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<V
         return null;
     }
 
-    @Override
-    public Void visitDeclaration(Declaration declaration) throws HaraldLangException {
+    private VarSlot newVarSlot(Declaration declaration) {
         // create a new var slot to represent this variable
         var slot = new VarSlot(nextId++, declaration.identifier());
         // add it to the current scope so we can find it **in the current scope**
         currentScope().put(declaration.identifier(), slot);
         // add the mapping from this **exact declaration** to the slot so we can find it all the time
         decl2slot.put(declaration, slot);
+        return slot;
+    }
+
+    @Override
+    public Void visitDeclaration(Declaration declaration) throws HaraldLangException {
+        var slot = newVarSlot(declaration);
 
         var initializer = declaration.expression();
         if (initializer != null) {
@@ -162,6 +183,21 @@ public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<V
         enter();
         stmt.body().accept(this);
         exit();
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionDefinition(FunctionDefinition functionDefinition) throws HaraldLangException {
+        // TODO should function names (i.e., the function itself) be resolved in any way?
+        // right now, we just resolve the function body and params
+
+        enter();
+        for (var param : functionDefinition.parameters()) {
+            newVarSlot(param);
+        }
+        functionDefinition.body().accept(this);
+        exit();
+
         return null;
     }
 }

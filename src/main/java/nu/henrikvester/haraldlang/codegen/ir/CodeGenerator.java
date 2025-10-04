@@ -2,6 +2,9 @@ package nu.henrikvester.haraldlang.codegen.ir;
 
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.statements.*;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.BinOp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRFrameSlot;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 
@@ -12,15 +15,19 @@ import java.util.Map;
 public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<IRValue> {
     private final Translator tr;
     private final Map<VarSlot, IRFrameSlot> variableMap = new HashMap<>();
-    private final NameResolver nameResolver;
+    private final Bindings bindings;
 
-    public CodeGenerator(Translator translator, NameResolver resolver, List<VarSlot> locals) {
+    public CodeGenerator(Translator translator, Bindings resolver, List<VarSlot> locals) {
         this.tr = translator;
-        this.nameResolver = resolver;
+        this.bindings = resolver;
         // generate frame slots for all local variables
         for (var local : locals) {
             variableMap.put(local, new IRFrameSlot(local.id()));
         }
+    }
+
+    IRFrameSlot frameOf(VarSlot slot) {
+        return variableMap.get(slot);
     }
 
     @Override
@@ -42,7 +49,7 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
 
     @Override
     public IRValue visitVar(Var expr) {
-        var slot = nameResolver.slot(expr); // resolve slot using name resolver
+        var slot = bindings.slot(expr); // resolve slot using name resolver
         var frame = variableMap.get(slot); // resolve frame from slot
         return tr.load(frame); // load value from frame (or wherever it is stored)
     }
@@ -85,7 +92,7 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
         var expr = declaration.expression();
         if (expr != null) {
             var value = expr.accept(this);
-            var slot = nameResolver.slot(declaration);
+            var slot = bindings.slot(declaration);
             var frame = variableMap.get(slot);
             tr.store(frame, value);
         }
@@ -97,7 +104,7 @@ public class CodeGenerator implements StatementVisitor<Void>, ExpressionVisitor<
         if (!(stmt.lvalue() instanceof Var var)) {
             throw new NotImplementedException("Can only assign to variables for now");
         }
-        var slot = nameResolver.slot(var);
+        var slot = bindings.slot(var);
         var frame = variableMap.get(slot);
 
         var value = stmt.value().accept(this);

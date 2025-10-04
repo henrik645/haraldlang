@@ -1,4 +1,4 @@
-package nu.henrikvester.haraldlang.codegen.ir;
+package nu.henrikvester.haraldlang.codegen.ir.primitives.values;
 
 /**
  * An IR-level representation of the current stack frame that backs a local variable.
