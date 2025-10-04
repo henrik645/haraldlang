@@ -48,7 +48,7 @@ class Interpreter implements StatementVisitor<Void>, ExpressionVisitor<Word>, LV
     public Void visitAssignment(Assignment stmt) throws HaraldLangException {
         // must be previously declared
         if (!(stmt.lvalue() instanceof Var var)) {
-            throw new NotImplementedException(); // TODO support other lvalues (like dereference)
+            throw new NotImplementedException();
         }
         if (!environment.isDeclared(var.identifier())) {
             throw HaraldMachineException.undefinedVariable(stmt.lvalue());

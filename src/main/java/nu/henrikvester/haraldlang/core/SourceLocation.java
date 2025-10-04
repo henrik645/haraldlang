@@ -13,7 +13,7 @@ public record SourceLocation(int line, int column) {
     }
 
     public void pointOut(String code, String message, int context) {
-        final String ANSI_RED = "\u001B[31m"; // TODO place in terminal utility class
+        final String ANSI_RED = "\u001B[31m";
         final String ANSI_RESET = "\u001B[0m";
 
         var lines = code.split("\n");
@@ -25,7 +25,6 @@ public record SourceLocation(int line, int column) {
             System.err.printf("%s%3d %s%n", i == this.line ? ANSI_RED : "", i + 1, lines[i]); // +1 to convert 0-based to 1-based line number
             if (this.isValid()) {
                 if (i == this.line) { // point to the error line
-                    // TODO print in colors
                     var messageLine = message == null ? "" : "----- " + message;
                     System.err.println(pointer + messageLine + ANSI_RESET);
                 }

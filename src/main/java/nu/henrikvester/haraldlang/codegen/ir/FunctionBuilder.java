@@ -23,7 +23,6 @@ import java.util.Map;
 
 public class FunctionBuilder {
     private final String name;
-    @Getter // TODO: remove getter -- all access to block should be from `finish` method
     private final Map<Label, BasicBlock> blocks = new LinkedHashMap<>();
     private int nextTemp = 0;
     private int nextLabel = 0;
@@ -62,7 +61,6 @@ public class FunctionBuilder {
     }
 
     void mark(Label label) {
-        // TODO should this check that the current block has ended? No, because of fallthrough and we might want to return to it later
         currentBlock = getOrCreate(label);
     }
 

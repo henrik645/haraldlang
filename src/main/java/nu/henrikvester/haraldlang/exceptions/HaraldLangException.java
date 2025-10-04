@@ -2,7 +2,6 @@ package nu.henrikvester.haraldlang.exceptions;
 
 import nu.henrikvester.haraldlang.core.SourceLocation;
 
-// TODO: should this be a Diag class instead to continue parsing and collect multiple errors?
 public class HaraldLangException extends Exception {
     private final SourceLocation location;
 

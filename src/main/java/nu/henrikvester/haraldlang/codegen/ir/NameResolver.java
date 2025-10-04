@@ -91,7 +91,6 @@ public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<V
         enter();
         stmt.initial().accept(this);
         stmt.condition().accept(this);
-        // TODO implement locals here? Or is it enough to scope the block around everything?
         stmt.body().accept(this);
         stmt.update().accept(this); // make sure update comes after so we don't get away with declaring variables in the update
         exit();

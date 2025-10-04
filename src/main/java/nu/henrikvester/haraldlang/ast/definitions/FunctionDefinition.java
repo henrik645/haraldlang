@@ -7,7 +7,6 @@ import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
 import java.util.List;
 
-// TODO: parameters: previously List<Var>, should we use Declaration instead?
 public record FunctionDefinition(String name, List<Declaration> parameters, Statement body,
                                  SourceLocation location) implements Definition {
     @Override
