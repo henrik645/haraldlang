@@ -10,3 +10,4 @@
 - [ ] Ensure Word wraps around at 8 bits
 - [ ] Implement `mem2reg` pass
 - [ ] Add better `toString` for IR instructions
+- [ ] Add JSpecify nullability checking
