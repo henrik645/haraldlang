@@ -121,24 +121,22 @@ public class NameResolver implements ExpressionVisitor<Void>, StatementVisitor<V
         return null;
     }
 
-    private VarSlot newVarSlot(Declaration declaration) {
+    private void newVarSlot(Declaration declaration) {
         // create a new var slot to represent this variable
         var slot = new VarSlot(nextId++, declaration.identifier());
         // add it to the current scope so we can find it **in the current scope**
         currentScope().put(declaration.identifier(), slot);
         // add the mapping from this **exact declaration** to the slot so we can find it all the time
         decl2slot.put(declaration, slot);
-        return slot;
     }
 
     @Override
     public Void visitDeclaration(Declaration declaration) throws HaraldLangException {
-        var slot = newVarSlot(declaration);
-
         var initializer = declaration.expression();
         if (initializer != null) {
             initializer.accept(this);
         }
+        newVarSlot(declaration); // in the initializer, the variable is not in scope yet
 
         return null;
     }
