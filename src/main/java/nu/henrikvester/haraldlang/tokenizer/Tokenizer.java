@@ -22,12 +22,12 @@ public class Tokenizer {
     }
 
     private boolean areMoreCharacters() {
-        return input.length() > currIndex + 1;
+        return input.length() > currIndex;
     }
 
     private void advance() {
-        if (!areMoreCharacters()) return;
         currIndex++;
+        if (!areMoreCharacters()) return;
         advanceSourceLocation();
         currChar = input.charAt(currIndex);
     }
