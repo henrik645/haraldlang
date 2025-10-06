@@ -5,10 +5,14 @@ import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public record Phi(IRTemp dst, Map<Label, IRTemp> incomings) implements IRInst {
+    public Phi(IRTemp dst) {
+        this(dst, new LinkedHashMap<>());
+    }
     @Override
     public String toString() {
         var incomingsStrs = new ArrayList<String>();

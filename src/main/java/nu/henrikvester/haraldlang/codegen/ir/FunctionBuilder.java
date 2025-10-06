@@ -110,7 +110,7 @@ public class FunctionBuilder {
             }
         }
 
-        return new IRFunction(name, getFirstBlock().getLabel(), new ArrayList<>(blocks.values()));
+        return new IRFunction(name, getFirstBlock().getLabel(), new ArrayList<>(blocks.values()), nextTemp);
     }
 
     public IRValue readVar(Var variable) {

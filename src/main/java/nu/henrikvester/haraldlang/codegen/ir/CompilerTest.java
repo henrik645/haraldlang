@@ -44,8 +44,8 @@ public class CompilerTest {
 
         System.out.println(irFunction);
 
-        var ssa = new SSA();
-        ssa.convertToSSA(irFunction, bindings);
+        var ssa = new SSA(irFunction, bindings);
+        ssa.convertToSSA();
 
 //        var ssa = new SSA();
 //        for (var block : irFunction.basicBlocks()) {

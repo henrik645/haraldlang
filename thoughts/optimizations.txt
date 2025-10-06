@@ -1,0 +1,50 @@
+fun main() {
+    declare test = 5;
+    declare x;
+    if (test = 10) {
+        let x = 5;
+    } else if (test = 5) {
+        let x = 10;
+    } else {
+        let x = 20;
+    }
+    print x;
+}
+
+register allocation:
+f0 -- r0
+f1 -- r1
+
+L0_func_main:
+    ldi r0, 5
+    sub r0, 10
+    BrZ r0 L2_if_else
+
+    ldi r1, 5
+    jmp L3_if_end
+L2_if_else:
+    add r0, 5
+    BrZ r0, L5_if_else
+
+    ldi r1, 10
+    jmp L6_if_end
+L5_if_else:
+    ldi r1, 20
+L6_if_end:
+L3_if_end:
+    print r1
+    ret
+
+total number of instructions:
+12
+
+optimizations performed:
+jmp to jmp -> single jmp
+jmp to next label -> remove jmp, fallthrough
+store and load to same register -> do nothing
+
+how do we rearrange blocks so that we have the least number of unnecessary jumps?
+
+thoughts:
+should stack pointer always be r4? or is it better to keep that in memory? maybe switch?
+do we need something other than stack pointer?

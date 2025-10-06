@@ -5,7 +5,8 @@ import nu.henrikvester.haraldlang.codegen.ir.Label;
 
 import java.util.List;
 
-public record IRFunction(String name, Label entry, List<BasicBlock> basicBlocks) {
+// TODO: nextTemp should not be passed like this
+public record IRFunction(String name, Label entry, List<BasicBlock> basicBlocks, int nextTemp) {
     @Override
     public String toString() {
         var sb = new StringBuilder();

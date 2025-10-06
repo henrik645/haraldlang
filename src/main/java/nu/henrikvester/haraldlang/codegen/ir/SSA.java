@@ -6,13 +6,23 @@ import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Phi;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Store;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRFrameSlot;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
-import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class SSA {
-    public void convertToSSA(IRFunction function, Bindings bindings) {
+    private final IRFunction function;
+    private final Bindings bindings;
+    private int nextTemp;
+
+    public SSA(IRFunction function, Bindings bindings) {
+        this.function = function;
+        this.bindings = bindings;
+        this.nextTemp = function.nextTemp();
+    }
+
+    public void convertToSSA() {
         System.out.println(bindings);
 
         System.out.println("Promotable slots:");
@@ -47,6 +57,18 @@ public class SSA {
                 System.out.println(node.getLabel() + " is the entry block");
             } else {
                 System.out.println(node.getLabel() + " is immediately dominated by " + dominator.getLabel());
+            }
+        }
+
+        System.out.println("\nPlacing phis:");
+        Map<BasicBlock, Map<IRFrameSlot, Phi>> result = placePhis(promotable, defBlocks, dominators.domTree());
+        for (var e : result.entrySet()) {
+            var block = e.getKey();
+            var phiMap = e.getValue();
+            for (Map.Entry<IRFrameSlot, Phi> e2 : phiMap.entrySet()) {
+                var slot = e2.getKey();
+                var phi = e2.getValue();
+                System.out.println("Placing phi for " + slot + " in block " + block.getLabel() + ": " + phi);
             }
         }
     }
@@ -110,22 +132,24 @@ public class SSA {
     (Set<IRFrameSlot> vars,
      Map<IRFrameSlot, Set<BasicBlock>> defBlocks,
      Map<BasicBlock, Set<BasicBlock>> dominanceFrontiers) {
-        Map<BasicBlock, Map<IRFrameSlot, Phi>> placed = new HashMap<>();
-
+        var placed = new HashMap<BasicBlock, Map<IRFrameSlot, Phi>>();
         for (var v : vars) {
-            Deque<BasicBlock> W = new ArrayDeque<>(defBlocks.getOrDefault(v, Set.of()));
-            Set<BasicBlock> hasAlready = new HashSet<>();
+            var W = new ArrayDeque<>(defBlocks.get(v));
             while (!W.isEmpty()) {
+                // X is each block that defines v, and that we need to consider
                 var X = W.pop();
-                for (var Y : dominanceFrontiers.getOrDefault(X, Set.of())) {
-                    if (!phiPresent(placed, Y, v)) {
-                        Phi phi = new Phi(nextTemp(), Map.of());
-                        placed.computeIfAbsent(Y, k -> new LinkedHashMap<>()).put(v, phi);
-                        Y.addPhi(phi);
-                        if (!hasAlready.contains(Y)) {
-                            hasAlready.add(Y);
-                            W.push(Y);
-                        }
+                var Y = dominanceFrontiers.get(X);
+                for (var y : Y) {
+                    if (!phiPresent(placed, y, v)) {
+                        var temp = nextTemp();
+                        var phi = new Phi(temp);
+                        // place placeholder, empty phi in the block
+                        placed.computeIfAbsent(y, k -> new HashMap<>()).put(v, phi);
+                    }
+                    if (!defBlocks.get(v).contains(y)) {
+                        // Y didn't already define v
+                        // push Y to W (because phi is now a new def site)
+                        W.push(y);
                     }
                 }
             }
@@ -135,7 +159,24 @@ public class SSA {
     }
 
     private IRTemp nextTemp() {
-        throw new NotImplementedException();
+        return new IRTemp(nextTemp++);
+    }
+
+    static class Rename {
+        private final Set<IRFrameSlot> promotables;
+        Map<IRFrameSlot, Deque<IRValue>> stack = new HashMap<>();
+
+        Rename(Set<IRFrameSlot> promotables) {
+            this.promotables = promotables;
+
+            for (var p : promotables) {
+                stack.put(p, new ArrayDeque<>());
+            }
+        }
+
+        void rename(BasicBlock block) {
+            Map<IRFrameSlot, Integer> depth = depthSnapshot(stack);
+        }
     }
 
     private boolean phiPresent(Map<BasicBlock, Map<IRFrameSlot, Phi>> placed, BasicBlock block, IRFrameSlot v) {
