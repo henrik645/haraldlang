@@ -10,11 +10,6 @@ import java.util.Map;
 
 public record Phi(IRTemp dst, Map<Label, IRTemp> incomings) implements IRInst {
     @Override
-    public List<IRValue> inputs() {
-        return new ArrayList<>(incomings.values());
-    }
-
-    @Override
     public String toString() {
         var incomingsStrs = new ArrayList<String>();
         for (var incoming : incomings.entrySet()) {
@@ -26,5 +21,15 @@ public record Phi(IRTemp dst, Map<Label, IRTemp> incomings) implements IRInst {
 
     public void addIncoming(Label label, IRTemp op) {
         this.incomings.put(label, op);
+    }
+
+    @Override
+    public List<IRValue> uses() {
+        return new ArrayList<>(incomings.values());
+    }
+
+    @Override
+    public List<IRTemp> defs() {
+        return List.of(dst);
     }
 }

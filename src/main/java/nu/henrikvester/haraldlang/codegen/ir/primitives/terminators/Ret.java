@@ -7,7 +7,7 @@ import java.util.List;
 
 public record Ret(IRValue value) implements IRTerminator {
     @Override
-    public List<IRValue> inputs() {
+    public List<IRValue> uses() {
         return List.of();
     }
 

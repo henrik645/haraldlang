@@ -7,7 +7,7 @@ import java.util.List;
 
 public record Jmp(Label target) implements IRTerminator {
     @Override
-    public List<IRValue> inputs() {
+    public List<IRValue> uses() {
         return List.of();
     }
 

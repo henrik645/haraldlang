@@ -1,23 +1,24 @@
 package nu.henrikvester.haraldlang.codegen.ir.primitives.instructions;
 
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRFrameSlot;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 
 import java.util.List;
 
-public record Store(IRValue addr, IRValue src) implements IRInst {
-    @Override
-    public IRTemp dst() {
-        return null;
-    }
-
-    @Override
-    public List<IRValue> inputs() {
-        return List.of(addr, src);
-    }
-
+public record Store(IRFrameSlot dst, IRValue src) implements IRInst {
     @Override
     public String toString() {
-        return "store " + src + " -> " + addr;
+        return "store " + src + " -> " + dst;
+    }
+
+    @Override
+    public List<IRValue> uses() {
+        return List.of(src);
+    }
+
+    @Override
+    public List<IRTemp> defs() {
+        return List.of();
     }
 }

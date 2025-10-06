@@ -16,18 +16,33 @@ public class CompilerTest {
                 }
                 """;
 
+        input = """
+                fun main() {
+                    declare test = 5;
+                    declare x;
+                    if (test = 10) {
+                        let x = 5;
+                    } else if (test = 5) {
+                        let x = 10;
+                    } else {
+                        let x = 20;
+                    }
+                    print x;
+                }
+                """;
+
         var defs = new Parser(input).parse();
 
         var firstFunctionDefinition = defs.functions().getFirst();
-        
+
         var nr = new NameResolver();
         var bindings = nr.resolve(firstFunctionDefinition);
-        System.out.println(bindings);
+//        System.out.println(bindings);
 
         var functionCompiler = new FunctionLowering();
         var irFunction = functionCompiler.lowerFunction(firstFunctionDefinition, bindings);
 
-//        System.out.println(irFunction);
+        System.out.println(irFunction);
 
         var ssa = new SSA();
         ssa.convertToSSA(irFunction, bindings);

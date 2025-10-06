@@ -7,12 +7,17 @@ import java.util.List;
 
 public record Mov(IRTemp dst, IRValue src) implements IRInst {
     @Override
-    public List<IRValue> inputs() {
+    public String toString() {
+        return dst + " <- " + src;
+    }
+
+    @Override
+    public List<IRValue> uses() {
         return List.of(src);
     }
 
     @Override
-    public String toString() {
-        return dst + " <- " + src;
+    public List<IRTemp> defs() {
+        return List.of(dst);
     }
 }

@@ -7,17 +7,17 @@ import java.util.List;
 
 public record Print(IRValue value) implements IRInst {
     @Override
-    public IRTemp dst() {
-        return null;
+    public String toString() {
+        return "print " + value;
     }
 
     @Override
-    public List<IRValue> inputs() {
+    public List<IRValue> uses() {
         return List.of(value);
     }
 
     @Override
-    public String toString() {
-        return "print " + value;
+    public List<IRTemp> defs() {
+        return List.of();
     }
 }
