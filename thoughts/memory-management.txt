@@ -1,0 +1,55 @@
+open system.io;
+
+class person {
+    string name;
+    int age;
+
+    new person(string name, int age) {
+        this = alloc(sizeof(this));
+        this.name = name.copy();
+        this.age = age;
+    }
+
+    delete person() {
+        free(this.name);
+        free(this);
+    }
+}
+
+fun main() {
+    rom string test = "Hello, world!\n";
+    managed person henrik = person.new("Henrik", 24);
+    unmanaged person harald = person.new("Henrik", 24);
+    system.io.println(henrik);
+}
+
+storage classes:
+    unmanaged
+    managed
+    stack
+    rom
+
+Error: `managed` reference escapes current scope. Hint: try unmanaged and keep free manually
+Error: attempt to modify `rom` value
+
+Or should we use ARC?
+
+when reference is taken: retain
+when reference is lost: release
+
+fun createPerson() {
+    return person.new("Henrik", 24);
+    // t0 := "Henrik"
+    // t1 := 24;
+    // t2 := call(Person_new_string_int, t0, t1);
+    // ret t2;
+}
+
+fun main() {
+    person henrik = createPerson();
+    system.io.println(henrik);
+    // t0 = call(createPerson);
+    // call(system_io_println, t0);
+    // release t0;
+    // retvoid;
+}

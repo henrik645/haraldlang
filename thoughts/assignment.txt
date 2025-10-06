@@ -1,0 +1,11 @@
+Like +=, >>= etc. we have .=
+
+list.=add(value)
+
+vs.
+
+list = list.add(value);
+
+or newList = list.add(value);
+
+or list.firstElement.=doSomething();

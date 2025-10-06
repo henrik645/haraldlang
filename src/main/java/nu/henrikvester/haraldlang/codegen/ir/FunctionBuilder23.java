@@ -5,58 +5,41 @@ import nu.henrikvester.haraldlang.ast.expressions.Var;
 import nu.henrikvester.haraldlang.ast.statements.Declaration;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.IRFunction;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.IRInst;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Load;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Mov;
-import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Phi;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Store;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.terminators.IRTerminator;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.terminators.RetVoid;
-import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRParam;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRFrameSlot;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FunctionBuilder23 {
     private final String name;
     private final Bindings bindings;
-    private final List<VarSlot> params;
     private final Map<Label, BasicBlock> blocks = new LinkedHashMap<>();
-    private final Map<BasicBlock, Map<VarSlot, IRValue>> block2var2value = new LinkedHashMap<>();
-    private final Map<BasicBlock, Map<VarSlot, Phi>> incompletePhis = new LinkedHashMap<>();
-    // maybe this needs to be ordered?
-    private final Set<BasicBlock> sealed = new HashSet<>();
-
-    // For each forward label that we haven't seen yet,
-    // keep track of the label and the blocks that branch to it.
-    // When we see the label and can associate it with a block,
-    // add these blocks as predecessors to that block.
-
-    // when we reach a terminator,
-    // the terminator points to zero, one, or two successor blocks.
-    // each of these successor blocks needs to know who their predecessors are.
-    // for each successor of a just-terminated block:
-    // pending.augment(successor, currentBlock);
-
-    // when we start a new block (in mark),
-    // we need to check if there are any predecessors that should be added to it.
-    // we look up the new block's label in pending,
-    // and add the list of predecessors to the block.
-
-    private final Map<Label, List<BasicBlock>> pending = new LinkedHashMap<>();
+    private final Map<Label, List<BasicBlock>> label2predecessors = new LinkedHashMap<>();
+    private final Map<VarSlot, IRFrameSlot> var2frame = new LinkedHashMap<>();
 
     private int nextTemp = 0;
     private int nextLabel = 0;
     @Getter
     private BasicBlock currentBlock;
 
-    public FunctionBuilder23(String name, Bindings bindings, List<VarSlot> params) {
+    public FunctionBuilder23(String name, Bindings bindings, List<VarSlot> locals) {
         this.name = name;
         this.bindings = bindings;
-        this.params = params;
 
         mark(newLabel("func_" + name));
         var i = 0;
-        for (var param : params) {
-            block2var2value.get(currentBlock).put(param, new IRParam(i));
+        for (var param : locals) {
+            var2frame.put(param, new IRFrameSlot(i));
+            System.out.println("Created frame slot for param " + param + " at index " + i);
             i++;
             System.out.println("param: " + i + " -> " + param);
         }
@@ -75,52 +58,42 @@ public class FunctionBuilder23 {
     // we look up the new block's label in `pending`,
     // and add the list of predecessors to the block.
     public void mark(Label label) {
+        System.out.println("Marking block " + label);
         // create or get the new block
         currentBlock = blocks.computeIfAbsent(label, this::newBlock);
 
         // if there are any predecessors for this label,
-        if (pending.containsKey(label)) {
-            for (var pred : pending.get(label)) {
+        if (label2predecessors.containsKey(label)) {
+            var predecessors = label2predecessors.get(label);
+            for (var pred : predecessors) {
                 currentBlock.addPredecessor(pred);
-                onAddEdge(pred, currentBlock);
             }
-            pending.remove(label);
-        }
-    }
-
-    private void onAddEdge(BasicBlock from, BasicBlock to) {
-        to.addPredecessor(from);
-        for (var entry : incompletePhis.get(to).entrySet()) {
-            VarSlot slot = entry.getKey();
-            Phi phi = entry.getValue();
-            IRValue pv = readVar(slot, from);
-            IRTemp op = ensureMaterializedIn(from, pv);
-            phi.addIncoming(from.getLabel(), op);
+            label2predecessors.remove(label);
+            System.out.println(" - Added " + predecessors.size() + " pending predecessors to block " + currentBlock.getLabel());
         }
     }
 
     public void emit(IRInst inst) {
-        currentBlock.add(inst);
+        emit(inst, currentBlock);
     }
 
-    // when we reach a terminator,
-    // the terminator points to zero, one, or two successor blocks.
-    // each of these successor blocks needs to know who their predecessors are.
-    // for each successor of a just-terminated block:
-    // pending.augment(successor, currentBlock);
+    private void emit(IRInst inst, BasicBlock block) {
+        block.add(inst);
+    }
+    
     public void endWith(IRTerminator terminator) {
-        var from = currentBlock;
+        System.out.println("Ending block " + currentBlock.getLabel());
         currentBlock.setTerminator(terminator);
-        for (var succLabel : terminator.successors()) {
-            // first, ensure that there is a list
-            if (!pending.containsKey(succLabel)) {
-                pending.put(succLabel, new ArrayList<>());
-            }
-            pending.get(succLabel).add(currentBlock);
-
-            var succ = blocks.get(succLabel);
-            if (succ != null) {
-                onAddEdge(from, succ);
+        for (var successor : terminator.successors()) {
+            if (blocks.containsKey(successor)) {
+                // we have already seen the successor and can add directly
+                blocks.get(successor).addPredecessor(currentBlock);
+                System.out.println(" - Added predecessor " + currentBlock.getLabel() + " to " + successor);
+            } else {
+                // we haven't seen the successor yet; add to pending for addition when we see it (in mark method)
+                var predecessors = label2predecessors.computeIfAbsent(successor, k -> new ArrayList<>());
+                predecessors.add(currentBlock);
+                System.out.println(" - Added pending predecessor " + currentBlock.getLabel() + " to " + successor);
             }
         }
     }
@@ -159,36 +132,43 @@ public class FunctionBuilder23 {
     }
 
     private IRValue readVar(VarSlot slot, BasicBlock block) {
-//        var slot = bindings.slot(variable);
-        IRValue value = block2var2value.get(block).get(slot);
-        if (value != null) {
-            return value; // found in the current block
-        }
-        // look for it in predecessors
-        var preds = block.getPredecessors();
-        if (preds.isEmpty()) {
-            throw new IllegalStateException("When getting value for slot " + slot + " + in block " + block.getLabel() + ", the value was not found in the block and the block has no predecessors");
-        }
-        if (preds.size() == 1) {
-            // get from successor
-            return readVar(slot, preds.getFirst());
-        }
-
-        // insert phi
-
-        var dst = newTemp();
-        var incomings = new LinkedHashMap<Label, IRTemp>();
-        for (var pred : preds) {
-            value = readVar(slot, pred);
-            var irTemp = ensureMaterializedIn(pred, value);
-            incomings.put(pred.getLabel(), irTemp);
-        }
-        Phi phi = new Phi(dst, incomings);
-        emit(phi);
-
-        setVar(slot, dst);
-
-        return dst;
+        var tmp = newTemp();
+        var frame = var2frame.get(slot);
+        emit(new Load(tmp, frame));
+        return tmp;
+//        IRValue value = block2var2value.get(block).get(slot);
+//        if (value != null) {
+//            return value; // found in the current block
+//        }
+//        // look for it in predecessors
+//        var preds = block.getPredecessors();
+//        if (preds.isEmpty()) {
+//            throw new IllegalStateException("When getting value for slot " + slot + " + in block " + block.getLabel() + ", the value was not found in the block and the block has no predecessors");
+//        }
+//        if (preds.size() == 1) {
+//            // get from the only predecessor
+//            var v = readVar(slot, preds.getFirst());
+//            setVar(slot, v);
+//            return ensureMaterializedIn(currentBlock, v);
+//        }
+//
+//        // Multiple predecessors -- insert phi.
+//        // Map from each predecessor label to the corresponding temp.
+//        var incomings = new LinkedHashMap<Label, IRTemp>();
+//        for (var pred : preds) {
+//            value = readVar(slot, pred);
+//            // ensure materialized in the predecessor
+//            var irTemp = ensureMaterializedIn(pred, value);
+//            incomings.put(pred.getLabel(), irTemp);
+//        }
+//        var dst = newTemp();
+//        Phi phi = new Phi(dst, incomings);
+//        block.addPhi(phi);
+////        emit(phi);
+//
+//        // associate variable slot with the phi-returned value in this block
+//        setVar(slot, dst);
+//        return dst;
     }
 
     public void setVar(Var variable, IRValue value) {
@@ -197,7 +177,8 @@ public class FunctionBuilder23 {
     }
 
     public void setVar(VarSlot slot, IRValue value) {
-        block2var2value.get(currentBlock).put(slot, value);
+        var frame = var2frame.get(slot);
+        emit(new Store(frame, value));
     }
 
     public void setVar(Declaration declaration, IRValue value) {
@@ -206,10 +187,7 @@ public class FunctionBuilder23 {
     }
 
     private BasicBlock newBlock(Label label) {
-        var block = new BasicBlock(label);
-        block2var2value.put(block, new LinkedHashMap<>());
-        incompletePhis.put(block, new LinkedHashMap<>());
-        return block;
+        return new BasicBlock(label);
     }
 
     private BasicBlock getFirstBlock() {
