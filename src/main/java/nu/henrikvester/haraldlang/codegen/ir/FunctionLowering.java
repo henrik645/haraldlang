@@ -6,7 +6,7 @@ import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
 public class FunctionLowering {
     IRFunction lowerFunction(FunctionDefinition functionDefinition, Bindings bindings) throws HaraldLangException {
-        var functionBuilder = new FunctionBuilder23(functionDefinition.name(), bindings, bindings.locals(functionDefinition));
+        var functionBuilder = new FunctionBuilder(functionDefinition.name(), bindings, bindings.locals(functionDefinition));
         var gen = new FunctionLowerer(functionBuilder);
         functionDefinition.body().accept(gen);
 

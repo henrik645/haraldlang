@@ -15,4 +15,9 @@ public record Ret(IRValue value) implements IRTerminator {
     public List<Label> successors() {
         return List.of();
     }
+
+    @Override
+    public String toString() {
+        return "ret " + value;
+    }
 }

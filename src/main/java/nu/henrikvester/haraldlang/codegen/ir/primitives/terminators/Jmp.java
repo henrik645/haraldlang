@@ -15,4 +15,9 @@ public record Jmp(Label target) implements IRTerminator {
     public List<Label> successors() {
         return List.of(target);
     }
+
+    @Override
+    public String toString() {
+        return "jmp " + target;
+    }
 }

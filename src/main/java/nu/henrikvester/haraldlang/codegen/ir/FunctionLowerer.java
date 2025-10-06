@@ -15,7 +15,7 @@ import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 
 @RequiredArgsConstructor
 public class FunctionLowerer implements StatementVisitor<Void>, ExpressionVisitor<IRValue> {
-    private final FunctionBuilder23 b;
+    private final FunctionBuilder b;
 
     @Override
     public IRValue visitAddressOfExpression(AddressOfExpression expr) {

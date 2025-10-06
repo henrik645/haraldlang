@@ -27,7 +27,10 @@ public class CompilerTest {
         var functionCompiler = new FunctionLowering();
         var irFunction = functionCompiler.lowerFunction(firstFunctionDefinition, bindings);
 
-        System.out.println(irFunction);
+//        System.out.println(irFunction);
+
+        var ssa = new SSA();
+        ssa.convertToSSA(irFunction, bindings);
 
 //        var ssa = new SSA();
 //        for (var block : irFunction.basicBlocks()) {

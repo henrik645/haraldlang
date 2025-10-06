@@ -15,4 +15,9 @@ public record RetVoid() implements IRTerminator {
     public List<Label> successors() {
         return List.of();
     }
+
+    @Override
+    public String toString() {
+        return "retvoid";
+    }
 }
