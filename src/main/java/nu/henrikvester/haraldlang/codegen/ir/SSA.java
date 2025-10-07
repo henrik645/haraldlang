@@ -1,11 +1,10 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
 import nu.henrikvester.haraldlang.codegen.ir.primitives.IRFunction;
-import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Load;
-import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Phi;
-import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.Store;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.instructions.*;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRFrameSlot;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRTemp;
+import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRUndef;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.values.IRValue;
 
 import java.util.*;
@@ -61,8 +60,8 @@ public class SSA {
         }
 
         System.out.println("\nPlacing phis:");
-        Map<BasicBlock, Map<IRFrameSlot, Phi>> result = placePhis(promotable, defBlocks, dominators.domTree());
-        for (var e : result.entrySet()) {
+        Map<BasicBlock, Map<IRFrameSlot, Phi>> placedPhis = placePhis(promotable, defBlocks, dominators.domTree());
+        for (var e : placedPhis.entrySet()) {
             var block = e.getKey();
             var phiMap = e.getValue();
             for (Map.Entry<IRFrameSlot, Phi> e2 : phiMap.entrySet()) {
@@ -71,6 +70,13 @@ public class SSA {
                 System.out.println("Placing phi for " + slot + " in block " + block.getLabel() + ": " + phi);
             }
         }
+
+        System.out.println("\nRenaming:");
+        var rename = new Rename(function, promotable, dominators.domTree, placedPhis);
+        var entry = Dominators.entry(function);
+        rename.rename(entry);
+
+        System.out.println(function);
     }
 
     private Set<IRFrameSlot> findPromotableSlots(IRFunction function) {
@@ -162,23 +168,6 @@ public class SSA {
         return new IRTemp(nextTemp++);
     }
 
-    static class Rename {
-        private final Set<IRFrameSlot> promotables;
-        Map<IRFrameSlot, Deque<IRValue>> stack = new HashMap<>();
-
-        Rename(Set<IRFrameSlot> promotables) {
-            this.promotables = promotables;
-
-            for (var p : promotables) {
-                stack.put(p, new ArrayDeque<>());
-            }
-        }
-
-        void rename(BasicBlock block) {
-            Map<IRFrameSlot, Integer> depth = depthSnapshot(stack);
-        }
-    }
-
     private boolean phiPresent(Map<BasicBlock, Map<IRFrameSlot, Phi>> placed, BasicBlock block, IRFrameSlot v) {
         return placed.containsKey(block) && placed.get(block).containsKey(v);
     }
@@ -186,133 +175,267 @@ public class SSA {
     private record Dominators(Map<BasicBlock, BasicBlock> idom, Map<BasicBlock, Set<BasicBlock>> domTree) {
 
         static Map<BasicBlock, BasicBlock> computeIdoms(IRFunction function) {
-                var blocks = function.basicBlocks();
-                if (blocks.isEmpty()) return Map.of();
-                BasicBlock entry = entry(function);
-    
-                Map<BasicBlock, List<BasicBlock>> succ = buildSuccessors(blocks);
-    
-                Set<BasicBlock> V = reachable(entry, succ);
-    
-                Map<BasicBlock, Set<BasicBlock>> dom = new LinkedHashMap<>();
+            var blocks = function.basicBlocks();
+            if (blocks.isEmpty()) return Map.of();
+            BasicBlock entry = entry(function);
+
+            Map<BasicBlock, List<BasicBlock>> succ = buildSuccessors(blocks);
+
+            Set<BasicBlock> V = reachable(entry, succ);
+
+            Map<BasicBlock, Set<BasicBlock>> dom = new LinkedHashMap<>();
+            for (var block : V) {
+                if (block == entry) {
+                    dom.put(block, new LinkedHashSet<>(Set.of(block)));
+                } else {
+                    dom.put(block, new LinkedHashSet<>(V));
+                }
+            }
+
+            boolean changed;
+            do {
+                changed = false;
                 for (var block : V) {
-                    if (block == entry) {
-                        dom.put(block, new LinkedHashSet<>(Set.of(block)));
-                    } else {
-                        dom.put(block, new LinkedHashSet<>(V));
-                    }
-                }
-    
-                boolean changed;
-                do {
-                    changed = false;
-                    for (var block : V) {
-                        if (block == entry) continue;
-                        Set<BasicBlock> inter = new LinkedHashSet<>(V);
-                        for (var p : block.getPredecessors()) {
-                            if (V.contains(p)) {
-                                inter.retainAll(dom.get(p));
-                            }
-                        }
-                        inter.add(block);
-    
-                        if (!inter.equals(dom.get(block))) {
-                            dom.put(block, inter);
-                            changed = true;
+                    if (block == entry) continue;
+                    Set<BasicBlock> inter = new LinkedHashSet<>(V);
+                    for (var p : block.getPredecessors()) {
+                        if (V.contains(p)) {
+                            inter.retainAll(dom.get(p));
                         }
                     }
-                } while (changed);
-    
-                Map<BasicBlock, BasicBlock> idom = new LinkedHashMap<>();
-                idom.put(entry, entry);
-    
-                for (var b : V) {
-                    if (b == entry) continue;
-                    Set<BasicBlock> strict = new LinkedHashSet<>(dom.get(b));
-                    strict.remove(b);
-    
-                    BasicBlock imm = null;
-                    outer:
-                    for (var d : strict) {
-                        for (var e : strict) {
-                            if (e == d) {
-                                continue;
-                            }
-                            if (!dom.get(d).contains(e)) {
-                                continue outer;
-                            }
+                    inter.add(block);
+
+                    if (!inter.equals(dom.get(block))) {
+                        dom.put(block, inter);
+                        changed = true;
+                    }
+                }
+            } while (changed);
+
+            Map<BasicBlock, BasicBlock> idom = new LinkedHashMap<>();
+            idom.put(entry, entry);
+
+            for (var b : V) {
+                if (b == entry) continue;
+                Set<BasicBlock> strict = new LinkedHashSet<>(dom.get(b));
+                strict.remove(b);
+
+                BasicBlock imm = null;
+                outer:
+                for (var d : strict) {
+                    for (var e : strict) {
+                        if (e == d) {
+                            continue;
                         }
-                        imm = d;
-                        break;
+                        if (!dom.get(d).contains(e)) {
+                            continue outer;
+                        }
                     }
-                    idom.put(b, imm);
+                    imm = d;
+                    break;
                 }
-    
-                return idom;
+                idom.put(b, imm);
             }
-    
-            private static Map<BasicBlock, List<BasicBlock>> buildSuccessors(List<BasicBlock> blocks) {
-                Map<BasicBlock, List<BasicBlock>> succ = new LinkedHashMap<>();
-                for (var block : blocks) {
-                    succ.putIfAbsent(block, new ArrayList<>());
-                }
-                for (var to : blocks) {
-                    for (var from : blocks) {
-                        succ.computeIfAbsent(from, k -> new ArrayList<>()).add(to);
-                    }
-                }
-                return succ;
+
+            return idom;
+        }
+
+        private static Map<BasicBlock, List<BasicBlock>> buildSuccessors(List<BasicBlock> blocks) {
+            Map<BasicBlock, List<BasicBlock>> succ = new LinkedHashMap<>();
+            for (var block : blocks) {
+                succ.putIfAbsent(block, new ArrayList<>());
             }
-    
-            private static Set<BasicBlock> reachable(BasicBlock entry, Map<BasicBlock, List<BasicBlock>> succ) {
-                Set<BasicBlock> seen = new HashSet<>();
-                Deque<BasicBlock> st = new ArrayDeque<>();
-                st.push(entry);
-                while (!st.isEmpty()) {
-                    var block = st.pop();
-                    if (!seen.add(block)) continue;
-                    for (var s : succ.getOrDefault(block, List.of())) {
-                        st.push(s);
-                    }
+            for (var to : blocks) {
+                for (var from : blocks) {
+                    succ.computeIfAbsent(from, k -> new ArrayList<>()).add(to);
                 }
-                return seen;
             }
-    
-            static Dominators compute(IRFunction function) {
-                // gets the immediate dominator of a block
-                Map<BasicBlock, BasicBlock> idom = computeIdoms(function);
-                // set of nodes where a basic block's dominance stops
-                // i.e., where we need to insert phis
-                Map<BasicBlock, Set<BasicBlock>> frontier = new HashMap<>();
-    
-                for (var block : function.basicBlocks()) {
-                    frontier.put(block, new HashSet<>());
+            return succ;
+        }
+
+        private static Set<BasicBlock> reachable(BasicBlock entry, Map<BasicBlock, List<BasicBlock>> succ) {
+            Set<BasicBlock> seen = new HashSet<>();
+            Deque<BasicBlock> st = new ArrayDeque<>();
+            st.push(entry);
+            while (!st.isEmpty()) {
+                var block = st.pop();
+                if (!seen.add(block)) continue;
+                for (var s : succ.getOrDefault(block, List.of())) {
+                    st.push(s);
                 }
-                for (var block : function.basicBlocks()) {
-                    var preds = block.getPredecessors();
-                    if (preds.size() >= 2) {
-                        for (var pred : preds) {
-                            var runner = pred;
-                            while (runner != idom.get(block)) {
-                                frontier.get(runner).add(block);
-                                runner = idom.get(runner);
-                            }
+            }
+            return seen;
+        }
+
+        static Dominators compute(IRFunction function) {
+            // gets the immediate dominator of a block
+            Map<BasicBlock, BasicBlock> idom = computeIdoms(function);
+            // set of nodes where a basic block's dominance stops
+            // i.e., where we need to insert phis
+            Map<BasicBlock, Set<BasicBlock>> frontier = new HashMap<>();
+
+            for (var block : function.basicBlocks()) {
+                frontier.put(block, new HashSet<>());
+            }
+            for (var block : function.basicBlocks()) {
+                var preds = block.getPredecessors();
+                if (preds.size() >= 2) {
+                    for (var pred : preds) {
+                        var runner = pred;
+                        while (runner != idom.get(block)) {
+                            frontier.get(runner).add(block);
+                            runner = idom.get(runner);
                         }
                     }
                 }
-    
-                return new Dominators(idom, frontier);
             }
-    
-            private static BasicBlock entry(IRFunction function) {
-                return function.basicBlocks().stream().filter(b -> b.getLabel().equals(function.entry())).findFirst().orElseThrow();
-            }
-    
-            public @Override String toString() {
-                return "Dominators{" +
-                        "idom=" + idom +
-                        ", domTree=" + domTree +
-                        '}';
+
+            return new Dominators(idom, frontier);
+        }
+
+        // TODO put in more general place
+        private static BasicBlock entry(IRFunction function) {
+            return function.basicBlocks().stream().filter(b -> b.getLabel().equals(function.entry())).findFirst().orElseThrow();
+        }
+
+        public @Override String toString() {
+            return "Dominators{" +
+                    "idom=" + idom +
+                    ", domTree=" + domTree +
+                    '}';
+        }
+    }
+
+    class Rename {
+        private final IRFunction irFunction;
+        private final Set<IRFrameSlot> promotables;
+        private final Map<BasicBlock, Set<BasicBlock>> domTree;
+        private final Map<BasicBlock, Map<IRFrameSlot, Phi>> placedPhis;
+        // current SSA name per promotable slot 
+        private final Map<IRFrameSlot, Deque<IRTemp>> stack = new LinkedHashMap<>();
+
+        Rename(IRFunction function, Set<IRFrameSlot> promotables, Map<BasicBlock, Set<BasicBlock>> domTree, Map<BasicBlock, Map<IRFrameSlot, Phi>> placedPhis) {
+            this.irFunction = function;
+            this.promotables = promotables;
+            this.placedPhis = placedPhis;
+            this.domTree = domTree;
+
+            for (var p : promotables) {
+                stack.put(p, new ArrayDeque<>());
             }
         }
+
+        // TODO put this in a more general place?
+        static Map<BasicBlock, List<BasicBlock>> computeSuccessors(IRFunction f) {
+            Map<Label, BasicBlock> byLabel = new LinkedHashMap<>();
+            for (var b : f.basicBlocks()) byLabel.put(b.getLabel(), b);
+
+            Map<BasicBlock, List<BasicBlock>> succ = new LinkedHashMap<>();
+            for (var b : f.basicBlocks()) {
+                var out = new ArrayList<BasicBlock>();
+                for (var lab : b.getTerminator().successors()) {
+                    out.add(byLabel.get(lab));
+                }
+                succ.put(b, out);
+            }
+            return succ;
+        }
+
+        void renameAll(BasicBlock entry) {
+            for (var v : promotables) {
+                stack.put(v, new ArrayDeque<>());
+            }
+            rename(entry);
+        }
+
+        private void rename(BasicBlock block) {
+            var depth = new LinkedHashMap<IRFrameSlot, Integer>();
+            for (var v : promotables) {
+                depth.put(v, stack.get(v).size());
+            }
+
+            // At block entry, push phi results for this block
+            var phisHere = placedPhis.getOrDefault(block, Map.of());
+            for (var e : phisHere.entrySet()) {
+                IRFrameSlot slot = e.getKey();
+                Phi phi = e.getValue();
+                stack.get(slot).push(phi.dst()); // the phi's result is the current value in this block
+            }
+
+            var it = block.getInstructions().listIterator();
+            while (it.hasNext()) {
+                var inst = it.next();
+
+                if (inst instanceof Load(IRTemp dst, IRFrameSlot src) && src instanceof IRFrameSlot slot && promotables.contains(slot)) {
+                    IRTemp cur = topOrUndef(block, slot);
+                    it.set(new Mov(dst, cur)); // replace Load with Mov of the temp (either defined or undef)
+                    continue;
+                }
+
+                if (inst instanceof Store store && store.src() instanceof IRFrameSlot slot && promotables.contains(slot)) {
+                    IRTemp name = ensureTempAtCursor(block, it, store.src()); // materialize value to a temp
+                    stack.get(slot).push(name); // new SSA def for slot
+                    it.remove(); // kill the store
+                    continue;
+                }
+
+                // leave other instructions
+            }
+
+            var succs = computeSuccessors(irFunction);
+            for (var succ : succs.get(block)) {
+                var phisInSucc = placedPhis.getOrDefault(succ, Map.of());
+                for (var e : phisInSucc.entrySet()) {
+                    IRFrameSlot slot = e.getKey();
+                    Phi phi = e.getValue();
+                    IRTemp in = materializeAtEndIfNeeded(block, topOrUndef(block, slot));
+                    phi.addIncoming(block.getLabel(), in);
+                }
+            }
+
+            for (var child : domTree.getOrDefault(block, Set.of())) {
+                rename(child);
+            }
+
+            for (var v : promotables) {
+                var s = stack.get(v);
+                while (s.size() > depth.get(v)) {
+                    s.pop();
+                }
+            }
+        }
+
+        // Get the top value for a slot, or an undefined value if no value exists yet
+        private IRTemp topOrUndef(BasicBlock block, IRFrameSlot slot) {
+            var s = stack.get(slot);
+            if (!s.isEmpty()) {
+                return s.peek();
+            }
+
+            IRTemp temp = nextTemp();
+            block.addBeforeTerminator(new Mov(temp, new IRUndef()));
+            s.push(temp);
+            return temp;
+        }
+
+        // If val is not a temp, insert Mov at iterator position and return the new temp
+        private IRTemp ensureTempAtCursor(BasicBlock block, ListIterator<IRInst> it, IRValue val) {
+            if (val instanceof IRTemp temp) {
+                return temp;
+            }
+            IRTemp dst = nextTemp();
+            it.add(new Mov(dst, val));
+            return dst;
+        }
+
+        // Since phi operands must be temps, materialize these right before terminator
+        private IRTemp materializeAtEndIfNeeded(BasicBlock block, IRValue val) {
+            if (val instanceof IRTemp temp) {
+                return temp;
+            }
+            IRTemp dst = nextTemp();
+            block.addBeforeTerminator(new Mov(dst, val));
+            return dst;
+        }
+    }
 }

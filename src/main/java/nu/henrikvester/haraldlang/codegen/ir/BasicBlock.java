@@ -12,7 +12,7 @@ public class BasicBlock {
     @Getter
     private final Label label;
     @Getter
-    private final List<IRInst> phis = new ArrayList<>();
+    private final List<Phi> phis = new ArrayList<>();
     @Getter
     private final List<IRInst> instructions = new ArrayList<>();
     @Getter
@@ -23,7 +23,7 @@ public class BasicBlock {
         this.label = label;
     }
 
-    void addPhi(IRInst phi) {
+    void addPhi(Phi phi) {
         phis.add(phi);
     }
 
@@ -31,8 +31,8 @@ public class BasicBlock {
         if (this.terminator != null) {
             throw new IllegalStateException("Block already terminated");
         }
-        if (instruction instanceof Phi) {
-            addPhi(instruction);
+        if (instruction instanceof Phi phi) {
+            addPhi(phi);
             return;
         }
         instructions.add(instruction);

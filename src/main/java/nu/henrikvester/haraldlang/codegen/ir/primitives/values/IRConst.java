@@ -6,3 +6,4 @@ public record IRConst(int value) implements IRValue {
         return String.valueOf(value);
     }
 }
+
