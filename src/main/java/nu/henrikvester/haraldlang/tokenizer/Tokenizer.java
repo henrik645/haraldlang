@@ -76,6 +76,7 @@ public class Tokenizer {
         }
 
         boolean hasAdvanced = false; // whether we've already advanced the current character
+        var location = currentSourceLocation();
         String lexeme = null;
         // Handle single-character tokens
         var tokenType = switch (currChar) {
@@ -87,7 +88,6 @@ public class Tokenizer {
             case ',' -> TokenType.COMMA;
             case '+' -> TokenType.PLUS;
             case '-' -> TokenType.MINUS;
-            case '=' -> TokenType.EQUALS;
             case '&' -> TokenType.AMPERSAND;
             case '*' -> TokenType.ASTERISK;
             case '!' -> {
@@ -97,6 +97,16 @@ public class Tokenizer {
                 } else {
                     hasAdvanced = true;
                     yield TokenType.EXCLAMATION;
+                }
+            }
+            case '=' -> {
+                advance();
+                if (currChar == '=') {
+                    lexeme = "==";
+                    yield TokenType.DOUBLE_EQUALS;
+                } else {
+                    hasAdvanced = true;
+                    yield TokenType.EQUALS;
                 }
             }
             case '>' -> {
@@ -121,7 +131,6 @@ public class Tokenizer {
             }
             default -> throw TokenizerException.unexpectedCharacter(currChar, currentSourceLocation());
         };
-        var location = currentSourceLocation();
         lexeme = lexeme == null ? String.valueOf(currChar) : lexeme;
         if (!hasAdvanced) {
             advance();

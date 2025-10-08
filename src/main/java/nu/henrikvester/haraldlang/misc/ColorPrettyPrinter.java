@@ -93,7 +93,7 @@ public class ColorPrettyPrinter implements StatementVisitor<String>, ExpressionV
         if (!(stmt.lvalue() instanceof Var var)) {
             throw new NotImplementedException("Only variable assignments are supported in pretty printer");
         }
-        return indentation() + cs.keyword().colorize("let ") + cs.variable().colorize(var.identifier()) + " = " + stmt.value().accept(this) + ";";
+        return indentation() + cs.variable().colorize(var.identifier()) + " = " + stmt.value().accept(this) + ";";
     }
 
     @Override
@@ -120,8 +120,9 @@ public class ColorPrettyPrinter implements StatementVisitor<String>, ExpressionV
 
     @Override
     public String visitDeclaration(Declaration declaration) throws HaraldLangException {
+        var typeName = declaration.type().typeName();
         var expr = declaration.expression() != null ? " = " + declaration.expression().accept(this) : "";
-        return indentation() + cs.keyword().colorize("declare ") + cs.variable().colorize(declaration.identifier()) + expr + ";";
+        return indentation() + typeName + " " + cs.variable().colorize(declaration.identifier()) + expr + ";";
     }
 
     @Override

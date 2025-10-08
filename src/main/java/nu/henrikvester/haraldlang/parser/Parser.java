@@ -7,6 +7,7 @@ import nu.henrikvester.haraldlang.ast.statements.*;
 import nu.henrikvester.haraldlang.core.SourceLocation;
 import nu.henrikvester.haraldlang.core.Token;
 import nu.henrikvester.haraldlang.core.TokenType;
+import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
 import nu.henrikvester.haraldlang.exceptions.ParserException;
 import nu.henrikvester.haraldlang.exceptions.TokenizerException;
 import nu.henrikvester.haraldlang.tokenizer.Tokenizer;
@@ -16,6 +17,7 @@ import java.util.List;
 
 public class Parser {
     private final static boolean DEBUG = false;
+    // TODO replace with Deque?
     private final List<Token> tokens = new ArrayList<>();
     private SourceLocation lastLocation;
 
@@ -42,6 +44,11 @@ public class Parser {
     private Token peek() {
         if (tokens.isEmpty()) return null; // I don't think this ever happens? EOF should be the last token
         return tokens.get(0);
+    }
+
+    private void pushBack(Token token) {
+        tokens.addFirst(token);
+        lastLocation = token.location();
     }
 
     public Expression parseExpression() throws ParserException {
@@ -88,8 +95,9 @@ public class Parser {
             if (next.type() == TokenType.RPAREN) {
                 break;
             }
+            var paramType = parseTypeUsage();
             var variable = parseVariable();
-            var declaration = new Declaration(variable.identifier(), null, variable.location()); // change here for default function parameters?
+            var declaration = new Declaration(paramType, variable.identifier(), null, variable.location()); // change here for default function parameters?
             parameters.add(declaration);
             next = peek();
             if (next == null) {
@@ -114,28 +122,63 @@ public class Parser {
             throw ParserException.unexpectedEndOfInput(lastLocation);
         }
         switch (next.type()) {
-            case KEYWORD_DECLARE -> {
-                var kw = pop();
-                var var = parseVariable();
-                var equals = peek();
-                if (equals != null && equals.type() == TokenType.EQUALS) {
-                    pop(); // pop '='
+            case IDENTIFIER -> {
+                // either a lifted variable expression, a function call, a variable assignment, or a variable declaration
+                // x
+                // method()
+                // x = 2
+                // int x = 2;
+
+                var ident = pop();
+                var anotherIdent = peek();
+                // TODO remove all these null checks, replace null return with TokenType.EOF
+                if (anotherIdent != null && anotherIdent.type() == TokenType.LPAREN) { // method call
+                    throw new NotImplementedException("Method calls");
+//                    return parseMethodCall();
+                } else if (anotherIdent != null && anotherIdent.type() == TokenType.EQUALS) { // variable assignment
+                    parseExact(TokenType.EQUALS);
                     var expression = parseExpression();
                     parseExact(TokenType.SEMICOLON);
-                    return new Declaration(var.identifier(), expression, kw.location());
+                    return new Assignment(new Var(ident.lexeme(), ident.location()), expression);
+                } else if (anotherIdent != null && anotherIdent.type() == TokenType.IDENTIFIER) { // variable declaration
+                    var varName = parseVariable();
+                    var typeUse = new TypeUse(ident.lexeme(), ident.location());
+                    var equals = peek();
+                    if (equals != null && equals.type() == TokenType.EQUALS) {
+                        pop(); // pop '='
+                        var expression = parseExpression();
+                        parseExact(TokenType.SEMICOLON);
+                        return new Declaration(typeUse, varName.identifier(), expression, ident.location());
+                    }
+                    parseExact(TokenType.SEMICOLON);
+                    return new Declaration(typeUse, varName.identifier(), null, ident.location());
+                } else { // expression
+                    pushBack(ident);
+                    return liftExpression();
                 }
-                parseExact(TokenType.SEMICOLON);
-                return new Declaration(var.identifier(), null, kw.location());
             }
-            case KEYWORD_LET -> {
-                pop();
-                var var = parseVariable();
-                parseExact(TokenType.EQUALS);
-                var expression = parseExpression();
-                parseExact(TokenType.SEMICOLON);
-
-                return new Assignment(var, expression);
-            }
+//            case KEYWORD_DECLARE -> {
+//                var kw = pop();
+//                var var = parseVariable();
+//                var equals = peek();
+//                if (equals != null && equals.type() == TokenType.EQUALS) {
+//                    pop(); // pop '='
+//                    var expression = parseExpression();
+//                    parseExact(TokenType.SEMICOLON);
+//                    return new Declaration(var.identifier(), expression, kw.location());
+//                }
+//                parseExact(TokenType.SEMICOLON);
+//                return new Declaration(var.identifier(), null, kw.location());
+//            }
+//            case KEYWORD_LET -> {
+//                pop();
+//                var var = parseVariable();
+//                parseExact(TokenType.EQUALS);
+//                var expression = parseExpression();
+//                parseExact(TokenType.SEMICOLON);
+//
+//                return new Assignment(var, expression);
+//            }
             case KEYWORD_PRINT -> {
                 pop();
                 var exp = parseExpression();
@@ -151,7 +194,7 @@ public class Parser {
             case KEYWORD_FOR -> {
                 return parseForLoopStatement();
             }
-            case IDENTIFIER, NUMBER -> {
+            case NUMBER -> {
                 return liftExpression();
             }
             case LBRACE -> {
@@ -220,6 +263,14 @@ public class Parser {
             throw ParserException.unexpectedToken("IDENTIFIER", token.type().name(), token.location());
         }
         return new Var(token.lexeme(), token.location());
+    }
+
+    private TypeUse parseTypeUsage() throws ParserException {
+        var token = pop();
+        if (token.type() != TokenType.IDENTIFIER) {
+            throw ParserException.unexpectedToken("type name", token.type().name(), token.location());
+        }
+        return new TypeUse(token.lexeme(), token.location());
     }
 
     private Token parseExact(TokenType tokenType) throws ParserException {

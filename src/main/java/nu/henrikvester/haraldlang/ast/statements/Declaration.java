@@ -1,6 +1,7 @@
 package nu.henrikvester.haraldlang.ast.statements;
 
 import nu.henrikvester.haraldlang.ast.expressions.Expression;
+import nu.henrikvester.haraldlang.ast.expressions.TypeUse;
 import nu.henrikvester.haraldlang.core.SourceLocation;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
@@ -10,7 +11,8 @@ import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
  * @param identifier the name of the variable
  * @param expression the expression whose value will be assigned to the variable, can be null for uninitialized variables
  */
-public record Declaration(String identifier, Expression expression, SourceLocation location) implements Statement {
+public record Declaration(TypeUse type, String identifier, Expression expression,
+                          SourceLocation location) implements Statement {
     @Override
     public <R> R accept(StatementVisitor<R> visitor) throws HaraldLangException {
         return visitor.visitDeclaration(this);

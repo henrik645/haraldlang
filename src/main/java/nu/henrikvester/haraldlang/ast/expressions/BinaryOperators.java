@@ -114,7 +114,7 @@ public class BinaryOperators {
 
         @Override
         public String symbol() {
-            return "=";
+            return "==";
         }
 
         @Override
@@ -148,7 +148,7 @@ public class BinaryOperators {
             case MINUS -> {
                 return minus;
             }
-            case EQUALS -> {
+            case DOUBLE_EQUALS -> {
                 return equal;
             }
             case NOT_EQUALS -> {
@@ -172,7 +172,7 @@ public class BinaryOperators {
 
     public static boolean tokenTypeIsOperator(TokenType type) {
         return switch (type) {
-            case PLUS, MINUS, EQUALS, NOT_EQUALS, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESSER_THAN,
+            case PLUS, MINUS, DOUBLE_EQUALS, NOT_EQUALS, GREATER_THAN, GREATER_THAN_OR_EQUAL, LESSER_THAN,
                  LESSER_THAN_OR_EQUAL -> true;
             default -> false;
         };

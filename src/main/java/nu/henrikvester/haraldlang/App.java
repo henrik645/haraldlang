@@ -10,14 +10,13 @@ public class App {
     public static void main(String[] args) {
         var input = """
                 fun main() {
-                    declare i;
-                    declare x = 100;
-                    declare y = x + 5;
-                    for (let i = 0; i < 10; let i = i + 1;) {
+                    int x = 100;
+                    int y = x + 5;
+                    for (int i = 0; i < 10; i = i + 1;) {
                         print i;
                     }
-                    if (i = 10) {
-                        for (let x = 0; x < 10; let x = x + 1;) {
+                    if (i == 10) {
+                        for (x = 0; x < 10; x = x + 1;) {
                             print x;
                         }
                         print y;

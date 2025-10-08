@@ -5,6 +5,7 @@ import nu.henrikvester.haraldlang.ast.lvalue.LValueVisitor;
 import nu.henrikvester.haraldlang.core.SourceLocation;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 
+// a usage of a variable
 public record Var(String identifier, SourceLocation location) implements Expression, LValue {
     @Override
     public <R> R accept(ExpressionVisitor<R> visitor) throws HaraldLangException {

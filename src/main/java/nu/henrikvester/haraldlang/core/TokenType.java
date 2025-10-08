@@ -21,6 +21,7 @@ public enum TokenType {
     PLUS,
     MINUS,
     EQUALS,
+    DOUBLE_EQUALS,
     NOT_EQUALS,
     GREATER_THAN,
     GREATER_THAN_OR_EQUAL,
