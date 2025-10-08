@@ -4,6 +4,7 @@ import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.lvalue.LValueVisitor;
 import nu.henrikvester.haraldlang.ast.statements.*;
+import nu.henrikvester.haraldlang.ast.types.BaseTypes;
 import nu.henrikvester.haraldlang.ast.types.HLType;
 import nu.henrikvester.haraldlang.codegen.ir.VarSlot;
 import nu.henrikvester.haraldlang.exceptions.CompilerException;

@@ -4,7 +4,6 @@ import nu.henrikvester.haraldlang.ast.Program;
 import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.ast.expressions.*;
 import nu.henrikvester.haraldlang.ast.statements.*;
-import nu.henrikvester.haraldlang.core.SourceLocation;
 import nu.henrikvester.haraldlang.core.Token;
 import nu.henrikvester.haraldlang.core.TokenType;
 import nu.henrikvester.haraldlang.exceptions.NotImplementedException;
@@ -19,7 +18,6 @@ public class Parser {
     private final static boolean DEBUG = false;
     // TODO replace with Deque?
     private final List<Token> tokens = new ArrayList<>();
-    private SourceLocation lastLocation;
 
     public Parser(String input) throws TokenizerException {
         var tokenizer = new Tokenizer(input);
@@ -36,9 +34,7 @@ public class Parser {
     }
 
     private Token pop() {
-        Token ret = tokens.removeFirst();
-        lastLocation = ret.location();
-        return ret;
+        return tokens.removeFirst();
     }
 
     private Token peek() {
@@ -48,7 +44,6 @@ public class Parser {
 
     private void pushBack(Token token) {
         tokens.addFirst(token);
-        lastLocation = token.location();
     }
 
     private Expression parseExpression() throws ParserException {
@@ -69,9 +64,6 @@ public class Parser {
         }
 
         var operator = peek();
-        if (operator == null) {
-            return left;
-        }
         if (BinaryOperators.tokenTypeIsOperator(operator.type())) {
             var op = pop(); // pop operator
             var right = parseExpression();
@@ -96,9 +88,6 @@ public class Parser {
         var parameters = new ArrayList<Declaration>();
         while (true) {
             var next = peek();
-            if (next == null) {
-                throw ParserException.unexpectedEndOfInput(lastLocation);
-            }
             if (next.type() == TokenType.RPAREN) {
                 break;
             }
@@ -107,9 +96,6 @@ public class Parser {
             var declaration = new Declaration(paramType, variable.identifier(), null, variable.location()); // change here for default function parameters?
             parameters.add(declaration);
             next = peek();
-            if (next == null) {
-                throw ParserException.unexpectedEndOfInput(lastLocation);
-            }
             if (next.type() == TokenType.COMMA) {
                 pop(); // pop ','
             } else if (next.type() != TokenType.RPAREN) {
@@ -125,9 +111,6 @@ public class Parser {
 
     private Statement parseStatement() throws ParserException {
         var next = peek();
-        if (next == null) {
-            throw ParserException.unexpectedEndOfInput(lastLocation);
-        }
         switch (next.type()) {
             case IDENTIFIER -> {
                 // either a lifted variable expression, a function call, a variable assignment, or a variable declaration

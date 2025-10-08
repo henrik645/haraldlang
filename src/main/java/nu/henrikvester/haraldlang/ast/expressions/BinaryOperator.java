@@ -4,8 +4,7 @@ import nu.henrikvester.haraldlang.ast.types.HLType;
 import nu.henrikvester.haraldlang.vm.Word;
 
 public interface BinaryOperator {
-    // TODO should this really be here?
-    Word apply(Word left, Word right);
+    Word apply(Word left, Word right); // used in the interpreter
 
     HLType leftType();
 

@@ -1,14 +1,8 @@
-package nu.henrikvester.haraldlang.analysis;
-
-import nu.henrikvester.haraldlang.ast.types.HLBool;
-import nu.henrikvester.haraldlang.ast.types.HLInt;
-import nu.henrikvester.haraldlang.ast.types.HLType;
-import nu.henrikvester.haraldlang.ast.types.HLVoid;
+package nu.henrikvester.haraldlang.ast.types;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// TODO should this be in this package?
 public class BaseTypes {
     private static Map<String, HLType> types;
 
