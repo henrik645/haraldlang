@@ -57,7 +57,8 @@ public class ColorPrettyPrinter implements StatementVisitor<String>, ExpressionV
 
     @Override
     public String visitBinaryExpression(BinaryExpression expr) throws HaraldLangException {
-        return expr.left().accept(this) + " " + (expr.op().symbol()) + " " + expr.right().accept(this);
+        // TODO remove these parenthesis. WHEN: we have operator precedence.
+        return "(" + expr.left().accept(this) + " " + (expr.op().symbol()) + " " + expr.right().accept(this) + ")";
     }
 
     @Override

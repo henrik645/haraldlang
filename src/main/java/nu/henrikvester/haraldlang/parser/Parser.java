@@ -36,14 +36,14 @@ public class Parser {
     }
 
     private Token pop() {
-        Token ret = tokens.remove(0);
+        Token ret = tokens.removeFirst();
         lastLocation = ret.location();
         return ret;
     }
 
     private Token peek() {
         if (tokens.isEmpty()) return null; // I don't think this ever happens? EOF should be the last token
-        return tokens.get(0);
+        return tokens.getFirst();
     }
 
     private void pushBack(Token token) {
@@ -51,15 +51,22 @@ public class Parser {
         lastLocation = token.location();
     }
 
-    public Expression parseExpression() throws ParserException {
+    private Expression parseExpression() throws ParserException {
         var token = pop();
-        var left = switch (token.type()) {
-            case AMPERSAND -> new AddressOfExpression(parseVariable(), token.location());
-            case ASTERISK -> throw ParserException.notImplementedYet("Dereference operator", token.location());
-            case NUMBER -> new LiteralExpression(Integer.parseInt(token.lexeme()), token.location());
-            case IDENTIFIER -> new Var(token.lexeme(), token.location());
-            default -> throw ParserException.unexpectedToken("expression", token.type().name(), token.location());
-        };
+
+        Expression left;
+        if (token.type() == TokenType.LPAREN) {
+            left = parseExpression();
+            parseExact(TokenType.RPAREN);
+        } else {
+            left = switch (token.type()) {
+                case AMPERSAND -> new AddressOfExpression(parseVariable(), token.location());
+                case ASTERISK -> throw ParserException.notImplementedYet("Dereference operator", token.location());
+                case NUMBER -> new LiteralExpression(Integer.parseInt(token.lexeme()), token.location());
+                case IDENTIFIER -> new Var(token.lexeme(), token.location());
+                default -> throw ParserException.unexpectedToken("expression", token.type().name(), token.location());
+            };
+        }
 
         var operator = peek();
         if (operator == null) {
@@ -194,7 +201,7 @@ public class Parser {
             case KEYWORD_FOR -> {
                 return parseForLoopStatement();
             }
-            case NUMBER -> {
+            case NUMBER, LPAREN -> {
                 return liftExpression();
             }
             case LBRACE -> {

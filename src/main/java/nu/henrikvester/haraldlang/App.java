@@ -12,15 +12,9 @@ public class App {
     public static void main(String[] args) {
         var input = """
                 fun main() {
-                    boolean test;
-                    int i = 0;
-                    while (i < 10) {
-                        if ((i + 2) == 4) {
-                            test = 5;
-                        }
-                        print i;
-                        i = i + 1;
-                    }
+                    int x = (5 + 2) - 3;
+                    boolean y = (x > 15);
+                    print y;
                 }
                 """;
 
