@@ -1,0 +1,104 @@
+enum Emotion {
+    happy, anxious, tired
+}
+
+enum Happening {
+    birthday, coffee
+}
+
+// default interface declared as public members of a virtual class
+virtual class Person {
+    String name;
+    int age;
+    Emotion emotion = happy; // private
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public void handle(Happening happening) {
+        emotion = switch (happening) {
+            case birthday -> happy;
+            case cofee    -> emotion == tired ? happy : anxious;
+        }
+    }
+
+    public String getName() { return name; }
+    public int getAge() { return age; }
+}
+
+// implement an interface through a member
+class Student implements Person(person) {
+    Person person;
+    String department;
+
+    public Student(String name, int age, String department) {
+        this.person = new Person(name, age);
+        this.department = department;
+    }
+}
+
+// or just as well:
+
+class Teacher implements Person {
+    String name;
+    String department;
+
+    public Teacher(String name, String department) {
+        this.name = name;
+        this.department = department;
+    }
+
+    public String getName() { return name; }
+
+    public int getAge() {
+        throw new NotSupportedException("Don't ask about the teacher's age!");
+    }
+
+    // error? interface member `handle(Emotion)` of Person not implemented
+}
+
+// and even multiple "inheritance":
+
+class BankAccountHolder {
+    String accountNumber;
+    public BankAccountHolder(String accountNumber) { this.accountNumber = accountNumber; }
+    public String getAccountNumber() { return accountNumber; }
+}
+
+class Henrik implements Person(person), BankAccountHolder(accountHolder) {
+    BankAccountHolder accountHolder;
+    Person person;
+
+    public Henrik(String name, int age, String accountNumber) {
+        this.person = new Person(name, age);
+        this.accountHolder = new BankAccountHolder(accountNumber);
+    }
+}
+
+// interesting idea about specializing type?
+
+class StudentWithBankAccount implements Person(student), BankAccountHolder(accountHolder) {
+    Student student;
+    BankAccountHolder accountHolder;
+    public StudentWithBankAccount(Student student, String accountNumber) {
+        this.student = student;
+        this.accountNumber = new BankAccountHolder(accountNumber);
+    }
+}
+
+
+class Main {
+    public void main() {
+        Person henrik = new Teacher("Henrik", "CS");
+        Person harald = new Student("Harald", 24, "CS");
+        Person mamma = new Person("Mamma", 64);
+        List<Person> people = ArrayList.of(henrik, harald, mamma);
+
+        for (Person person in people) {
+            System.out.println(person.getAge());
+        }
+    }
+}
+
