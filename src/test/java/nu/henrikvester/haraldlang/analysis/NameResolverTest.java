@@ -10,6 +10,7 @@ import nu.henrikvester.haraldlang.ast.statements.Declaration;
 import nu.henrikvester.haraldlang.ast.statements.PrintStatement;
 import nu.henrikvester.haraldlang.codegen.ir.VarSlot;
 import nu.henrikvester.haraldlang.core.SourceLocation;
+import nu.henrikvester.haraldlang.exceptions.CompilerException;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.parser.Parser;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,10 +39,41 @@ class NameResolverTest {
     }
 
     @Test
+    void nameResolver_throwsOnUndeclaredAssignment() throws HaraldLangException {
+        var main = getFirst("""
+                fun main() {
+                    x = 5;
+                }
+                """);
+        assertThrows(CompilerException.class, () -> nr.resolve(main));
+    }
+
+    @Test
+    void nameResolver_throwsOnUndeclaredUse() throws HaraldLangException {
+        var main = getFirst("""
+                fun main() {
+                    print x;
+                }
+                """);
+        assertThrows(CompilerException.class, () -> nr.resolve(main));
+    }
+
+    @Test
+    void nameResolver_throwsOnUndefinedTypeUse() throws HaraldLangException {
+        var main = getFirst("""
+                fun main() {
+                    hejsan x = 5;
+                }
+                """);
+        assertThrows(CompilerException.class, () -> nr.resolve(main));
+    }
+
+
+    @Test
     void nameResolver_handlesSimpleCase() throws HaraldLangException {
         var main = getFirst("""
                 fun main() {
-                    declare x = 5;
+                    int x = 5;
                 }
                 """);
         var b = nr.resolve(main);
@@ -53,8 +85,8 @@ class NameResolverTest {
     @Test
     void nameResolver_canRedeclareLocal() throws HaraldLangException {
         var main = getFirst("""
-                fun main(x) {
-                    declare x = 5;
+                fun main(boolean x) {
+                    int x = 5;
                 }
                 """);
         var b = nr.resolve(main);
@@ -66,8 +98,8 @@ class NameResolverTest {
     @Test
     void nameResolver_letDoesNotRedeclare() throws HaraldLangException {
         var main = getFirst("""
-                fun main(x) {
-                    let x = 5;
+                fun main(int x) {
+                    x = 5;
                 }
                 """);
         var b = nr.resolve(main);

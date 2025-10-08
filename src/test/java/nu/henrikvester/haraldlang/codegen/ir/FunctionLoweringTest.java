@@ -19,7 +19,7 @@ class FunctionLoweringTest {
     void functionLowering_allBlocksAreClosed() throws HaraldLangException {
         var f = getFunction("""
                 fun main() {
-                    for (declare i = 10; i; let i = i - 1;) {
+                    for (int i = 10; i; i = i - 1;) {
                         print i;
                     }
                 }

@@ -42,7 +42,7 @@ public class Parser {
     }
 
     private Token peek() {
-        if (tokens.isEmpty()) return null; // I don't think this ever happens? EOF should be the last token
+        assert (!tokens.isEmpty());
         return tokens.getFirst();
     }
 
@@ -83,7 +83,7 @@ public class Parser {
 
     public Program parse() throws ParserException {
         List<FunctionDefinition> functions = new ArrayList<>();
-        for (var next = peek(); next != null && next.type() != TokenType.EOF; next = peek()) {
+        for (var next = peek(); next.type() != TokenType.EOF; next = peek()) {
             functions.add(parseFunction());
         }
         return new Program(functions);
@@ -138,20 +138,18 @@ public class Parser {
 
                 var ident = pop();
                 var anotherIdent = peek();
-                // TODO remove all these null checks, replace null return with TokenType.EOF
-                if (anotherIdent != null && anotherIdent.type() == TokenType.LPAREN) { // method call
+                if (anotherIdent.type() == TokenType.LPAREN) { // method call
                     throw new NotImplementedException("Method calls");
-//                    return parseMethodCall();
-                } else if (anotherIdent != null && anotherIdent.type() == TokenType.EQUALS) { // variable assignment
+                } else if (anotherIdent.type() == TokenType.EQUALS) { // variable assignment
                     parseExact(TokenType.EQUALS);
                     var expression = parseExpression();
                     parseExact(TokenType.SEMICOLON);
                     return new Assignment(new Var(ident.lexeme(), ident.location()), expression);
-                } else if (anotherIdent != null && anotherIdent.type() == TokenType.IDENTIFIER) { // variable declaration
+                } else if (anotherIdent.type() == TokenType.IDENTIFIER) { // variable declaration
                     var varName = parseVariable();
                     var typeUse = new TypeUse(ident.lexeme(), ident.location());
                     var equals = peek();
-                    if (equals != null && equals.type() == TokenType.EQUALS) {
+                    if (equals.type() == TokenType.EQUALS) {
                         pop(); // pop '='
                         var expression = parseExpression();
                         parseExact(TokenType.SEMICOLON);
@@ -164,28 +162,6 @@ public class Parser {
                     return liftExpression();
                 }
             }
-//            case KEYWORD_DECLARE -> {
-//                var kw = pop();
-//                var var = parseVariable();
-//                var equals = peek();
-//                if (equals != null && equals.type() == TokenType.EQUALS) {
-//                    pop(); // pop '='
-//                    var expression = parseExpression();
-//                    parseExact(TokenType.SEMICOLON);
-//                    return new Declaration(var.identifier(), expression, kw.location());
-//                }
-//                parseExact(TokenType.SEMICOLON);
-//                return new Declaration(var.identifier(), null, kw.location());
-//            }
-//            case KEYWORD_LET -> {
-//                pop();
-//                var var = parseVariable();
-//                parseExact(TokenType.EQUALS);
-//                var expression = parseExpression();
-//                parseExact(TokenType.SEMICOLON);
-//
-//                return new Assignment(var, expression);
-//            }
             case KEYWORD_PRINT -> {
                 pop();
                 var exp = parseExpression();
@@ -207,7 +183,7 @@ public class Parser {
             case LBRACE -> {
                 var opening = pop(); // pop '{'
                 var statements = new ArrayList<Statement>();
-                while (peek() != null && peek().type() != TokenType.RBRACE) {
+                while (peek().type() != TokenType.RBRACE) {
                     statements.add(parseStatement());
                 }
                 parseExact(TokenType.RBRACE);
