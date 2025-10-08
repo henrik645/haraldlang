@@ -11,13 +11,14 @@ import nu.henrikvester.haraldlang.exceptions.ParserException;
 import nu.henrikvester.haraldlang.exceptions.TokenizerException;
 import nu.henrikvester.haraldlang.tokenizer.Tokenizer;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 public class Parser {
     private final static boolean DEBUG = false;
-    // TODO replace with Deque?
-    private final List<Token> tokens = new ArrayList<>();
+    private final Deque<Token> tokens = new ArrayDeque<>();
 
     public Parser(String input) throws TokenizerException {
         var tokenizer = new Tokenizer(input);
@@ -34,16 +35,16 @@ public class Parser {
     }
 
     private Token pop() {
-        return tokens.removeFirst();
+        return tokens.pop();
     }
 
     private Token peek() {
         assert (!tokens.isEmpty());
-        return tokens.getFirst();
+        return tokens.peek();
     }
 
     private void pushBack(Token token) {
-        tokens.addFirst(token);
+        tokens.push(token);
     }
 
     private Expression parseExpression() throws ParserException {
