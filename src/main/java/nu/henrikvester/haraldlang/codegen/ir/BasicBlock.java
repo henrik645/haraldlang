@@ -13,8 +13,10 @@ public class BasicBlock {
     private final Label label;
     @Getter
     private final List<Phi> phis = new ArrayList<>();
+
+    // TODO should getInstructions return phis, too?
     @Getter
-    private final List<IRInst> instructions = new ArrayList<>();
+    private final ArrayList<IRInst> instructions = new ArrayList<>();
     @Getter
     private IRTerminator terminator;
     private final List<BasicBlock> predecessors = new ArrayList<>();

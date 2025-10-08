@@ -30,8 +30,10 @@ public class FunctionLowerer implements StatementVisitor<Void>, ExpressionVisito
     @Override
     public IRValue visitBinaryExpression(BinaryExpression expr) throws HaraldLangException {
         var binOp = BinOp.fromString(expr.op().symbol());
+        var left = expr.left().accept(this);
+        var right = expr.right().accept(this);
         var res = b.newTemp();
-        b.emit(new Bin(res, binOp, expr.left().accept(this), expr.right().accept(this)));
+        b.emit(new Bin(res, binOp, left, right));
         return res;
     }
 

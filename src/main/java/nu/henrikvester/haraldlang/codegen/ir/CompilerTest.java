@@ -18,14 +18,11 @@ public class CompilerTest {
 
         input = """
                 fun main() {
-                    declare test = 5;
                     declare x;
-                    if (test = 10) {
+                    if (1) {
                         let x = 5;
-                    } else if (test = 5) {
-                        let x = 10;
                     } else {
-                        let x = 20;
+                        let x = 6;
                     }
                     print x;
                 }
@@ -42,10 +39,23 @@ public class CompilerTest {
         var functionCompiler = new FunctionLowering();
         var irFunction = functionCompiler.lowerFunction(firstFunctionDefinition, bindings);
 
+        var cfg = new CFG(irFunction);
+
+        System.out.println(cfg);
+
+        var phiPlacer = new PhiRecorder(cfg);
+        phiPlacer.recordPhis();
+
+        phiPlacer.materializePhiNodes();
+        
         System.out.println(irFunction);
 
-        var ssa = new SSA(irFunction, bindings);
-        ssa.convertToSSA();
+        phiPlacer.ssaRename();
+
+//        System.out.println(irFunction);
+
+//        var ssa = new SSA(irFunction, bindings);
+//        ssa.convertToSSA();
 
 //        var ssa = new SSA();
 //        for (var block : irFunction.basicBlocks()) {

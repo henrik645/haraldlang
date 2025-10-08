@@ -1,4 +1,9 @@
 package nu.henrikvester.haraldlang.codegen.ir.primitives.values;
 
-public record IRUndef() implements IRValue {
-}
+//@Value
+//public class IRUndef implements IRValue {
+//    @Override
+//    public List<Use> uses() {
+//        return List.of();
+//    }
+//}
