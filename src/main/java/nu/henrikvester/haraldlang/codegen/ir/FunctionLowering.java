@@ -1,5 +1,6 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
+import nu.henrikvester.haraldlang.analysis.Bindings;
 import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.IRFunction;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;

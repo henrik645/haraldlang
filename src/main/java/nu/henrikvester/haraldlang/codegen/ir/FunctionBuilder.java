@@ -1,6 +1,7 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
 import lombok.Getter;
+import nu.henrikvester.haraldlang.analysis.Bindings;
 import nu.henrikvester.haraldlang.ast.expressions.Var;
 import nu.henrikvester.haraldlang.ast.statements.Declaration;
 import nu.henrikvester.haraldlang.codegen.ir.primitives.IRFunction;

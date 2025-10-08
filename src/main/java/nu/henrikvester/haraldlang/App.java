@@ -1,5 +1,7 @@
 package nu.henrikvester.haraldlang;
 
+import nu.henrikvester.haraldlang.analysis.NameResolver;
+import nu.henrikvester.haraldlang.analysis.TypeChecker;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.misc.ColorPrettyPrinter;
 import nu.henrikvester.haraldlang.misc.ColorSchemes;
@@ -10,18 +12,14 @@ public class App {
     public static void main(String[] args) {
         var input = """
                 fun main() {
-                    int x = 100;
-                    int y = x + 5;
-                    for (int i = 0; i < 10; i = i + 1;) {
-                        print i;
-                    }
-                    if (i == 10) {
-                        for (x = 0; x < 10; x = x + 1;) {
-                            print x;
+                    boolean test;
+                    int i = 0;
+                    while (i < 10) {
+                        if ((i + 2) == 4) {
+                            test = 5;
                         }
-                        print y;
-                    } else {
-                        print 1;
+                        print i;
+                        i = i + 1;
                     }
                 }
                 """;
@@ -36,6 +34,12 @@ public class App {
                 System.out.println(pretty);
             }
             var main = program.functions().stream().filter(f -> f.name().equals("main")).findFirst().orElseThrow(HaraldLangException::noMainFunction);
+
+            var nameResolver = new NameResolver();
+            var bindings = nameResolver.resolve(main);
+            var tc = new TypeChecker(bindings);
+            tc.typeCheck(main);
+            
             var vm = new HaraldMachine();
             vm.run(main.body());
         } catch (HaraldLangException e) {

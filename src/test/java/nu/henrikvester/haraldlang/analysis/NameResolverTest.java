@@ -1,12 +1,14 @@
-package nu.henrikvester.haraldlang.codegen.ir;
+package nu.henrikvester.haraldlang.analysis;
 
 import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.ast.expressions.LiteralExpression;
+import nu.henrikvester.haraldlang.ast.expressions.TypeUse;
 import nu.henrikvester.haraldlang.ast.expressions.Var;
 import nu.henrikvester.haraldlang.ast.statements.Assignment;
 import nu.henrikvester.haraldlang.ast.statements.BlockStatement;
 import nu.henrikvester.haraldlang.ast.statements.Declaration;
 import nu.henrikvester.haraldlang.ast.statements.PrintStatement;
+import nu.henrikvester.haraldlang.codegen.ir.VarSlot;
 import nu.henrikvester.haraldlang.core.SourceLocation;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.parser.Parser;
@@ -76,8 +78,8 @@ class NameResolverTest {
 
     @Test
     void nameResolver_shadowingOnlyAffectsScope() throws HaraldLangException {
-        var firstDeclaration = new Declaration("x", new LiteralExpression(5, SourceLocation.NONE), SourceLocation.NONE);
-        var secondDeclaration = new Declaration("x", new LiteralExpression(10, SourceLocation.NONE), SourceLocation.NONE);
+        var firstDeclaration = new Declaration(new TypeUse("int", SourceLocation.NONE), "x", new LiteralExpression(5, SourceLocation.NONE), SourceLocation.NONE);
+        var secondDeclaration = new Declaration(new TypeUse("int", SourceLocation.NONE), "x", new LiteralExpression(10, SourceLocation.NONE), SourceLocation.NONE);
 
         var firstDeclarationUse = new Var("x", SourceLocation.NONE);
         var secondDeclarationUse = new Var("x", SourceLocation.NONE);
@@ -108,7 +110,7 @@ class NameResolverTest {
         var firstUse = new Var("x", SourceLocation.NONE);
         var secondUse = new Var("x", SourceLocation.NONE);
 
-        var declaration = new Declaration("x", new LiteralExpression(5, SourceLocation.NONE), SourceLocation.NONE);
+        var declaration = new Declaration(new TypeUse("int", SourceLocation.NONE), "x", new LiteralExpression(5, SourceLocation.NONE), SourceLocation.NONE);
         var reassignment = new Assignment(firstUse, new LiteralExpression(10, SourceLocation.NONE));
 
         var main = new FunctionDefinition("main", List.of(), new BlockStatement(List.of(

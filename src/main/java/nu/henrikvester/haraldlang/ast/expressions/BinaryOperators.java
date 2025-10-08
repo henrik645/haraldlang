@@ -1,5 +1,8 @@
 package nu.henrikvester.haraldlang.ast.expressions;
 
+import nu.henrikvester.haraldlang.ast.types.HLBool;
+import nu.henrikvester.haraldlang.ast.types.HLInt;
+import nu.henrikvester.haraldlang.ast.types.HLType;
 import nu.henrikvester.haraldlang.core.TokenType;
 import nu.henrikvester.haraldlang.vm.Word;
 
@@ -8,6 +11,21 @@ public class BinaryOperators {
         @Override
         public Word apply(Word left, Word right) {
             return new Word(left.value() + right.value());
+        }
+
+        @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLInt();
         }
 
         @Override
@@ -28,6 +46,21 @@ public class BinaryOperators {
         }
 
         @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLInt();
+        }
+
+        @Override
         public String symbol() {
             return "-";
         }
@@ -42,6 +75,21 @@ public class BinaryOperators {
         @Override
         public Word apply(Word left, Word right) {
             return Word.ofBoolean(left.value() > right.value());
+        }
+
+        @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLBool();
         }
 
         @Override
@@ -70,12 +118,42 @@ public class BinaryOperators {
         public String toString() {
             return symbol();
         }
+
+        @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLBool();
+        }
     };
 
     public static final BinaryOperator lesserThan = new BinaryOperator() {
         @Override
         public Word apply(Word left, Word right) {
             return Word.ofBoolean(left.value() < right.value());
+        }
+
+        @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLBool();
         }
 
         @Override
@@ -96,6 +174,22 @@ public class BinaryOperators {
         }
 
         @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLBool();
+        }
+
+
+        @Override
         public String symbol() {
             return "<=";
         }
@@ -113,6 +207,21 @@ public class BinaryOperators {
         }
 
         @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLBool();
+        }
+
+        @Override
         public String symbol() {
             return "==";
         }
@@ -127,6 +236,21 @@ public class BinaryOperators {
         @Override
         public Word apply(Word left, Word right) {
             return Word.ofBoolean(left.value() != right.value());
+        }
+
+        @Override
+        public HLType leftType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType rightType() {
+            return new HLInt();
+        }
+
+        @Override
+        public HLType resultType() {
+            return new HLBool();
         }
 
         @Override

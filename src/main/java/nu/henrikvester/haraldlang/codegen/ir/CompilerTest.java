@@ -1,5 +1,6 @@
 package nu.henrikvester.haraldlang.codegen.ir;
 
+import nu.henrikvester.haraldlang.analysis.NameResolver;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.parser.Parser;
 

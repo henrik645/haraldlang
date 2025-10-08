@@ -1,8 +1,9 @@
-package nu.henrikvester.haraldlang.codegen.ir;
+package nu.henrikvester.haraldlang.analysis;
 
 import nu.henrikvester.haraldlang.ast.definitions.FunctionDefinition;
 import nu.henrikvester.haraldlang.ast.expressions.Var;
 import nu.henrikvester.haraldlang.ast.statements.Declaration;
+import nu.henrikvester.haraldlang.codegen.ir.VarSlot;
 
 import java.util.IdentityHashMap;
 import java.util.List;
