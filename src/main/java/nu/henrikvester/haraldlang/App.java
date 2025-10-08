@@ -1,14 +1,15 @@
 package nu.henrikvester.haraldlang;
 
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
-import nu.henrikvester.haraldlang.misc.PrettyPrinter;
+import nu.henrikvester.haraldlang.misc.ColorPrettyPrinter;
+import nu.henrikvester.haraldlang.misc.ColorSchemes;
 import nu.henrikvester.haraldlang.parser.Parser;
 import nu.henrikvester.haraldlang.vm.HaraldMachine;
 
 public class App {
     public static void main(String[] args) {
         var input = """
-                {
+                fun main() {
                     declare i;
                     declare x = 100;
                     declare y = x + 5;
@@ -30,7 +31,7 @@ public class App {
             var program = new Parser(input).parse();
             for (var def : program.functions()) {
                 System.out.println("Parsed function: " + def.name() + " with parameters " + def.parameters());
-                var prettyPrinter = new PrettyPrinter(8);
+                var prettyPrinter = new ColorPrettyPrinter(4, ColorSchemes.JETBRAINS);
                 var pretty = def.accept(prettyPrinter);
                 System.out.println("Pretty printed AST:");
                 System.out.println(pretty);
