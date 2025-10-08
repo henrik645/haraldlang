@@ -5,6 +5,7 @@ import nu.henrikvester.haraldlang.analysis.TypeChecker;
 import nu.henrikvester.haraldlang.exceptions.HaraldLangException;
 import nu.henrikvester.haraldlang.misc.ColorPrettyPrinter;
 import nu.henrikvester.haraldlang.misc.ColorSchemes;
+import nu.henrikvester.haraldlang.misc.Linter;
 import nu.henrikvester.haraldlang.parser.Parser;
 import nu.henrikvester.haraldlang.vm.HaraldMachine;
 
@@ -12,9 +13,10 @@ public class App {
     public static void main(String[] args) {
         var input = """
                 fun main() {
-                    int x = (5 + 2) - 3;
-                    boolean y = (x > 15);
-                    print y;
+                    int i = 5;
+                    for (i = 0; i < 10; i = i + 1;) {
+                        print i;
+                    }
                 }
                 """;
 
@@ -29,6 +31,15 @@ public class App {
             }
             var main = program.functions().stream().filter(f -> f.name().equals("main")).findFirst().orElseThrow(HaraldLangException::noMainFunction);
 
+            var diags = Linter.lint(main);
+            for (var diag : diags) {
+                System.out.println(diag.colorToString());
+                diag.getLocation().pointOut(input, diag.getMessage());
+            }
+            if (!diags.isEmpty()) {
+                System.out.println(diags.size() + " warning" + (diags.size() == 1 ? "" : "s"));
+            }
+            
             var nameResolver = new NameResolver();
             var bindings = nameResolver.resolve(main);
             var tc = new TypeChecker(bindings);
