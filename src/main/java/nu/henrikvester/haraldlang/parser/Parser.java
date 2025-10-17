@@ -240,11 +240,11 @@ public class Parser {
         return new TypeUse(token.lexeme(), token.location());
     }
 
-    private Token parseExact(TokenType tokenType) throws ParserException {
-        var token = pop();
-        if (token.type() != tokenType) {
-            throw ParserException.unexpectedToken(tokenType.name(), token.type().name(), token.location());
+    private Token parseExact(TokenType expectedTokenType) throws ParserException {
+        var actualToken = pop();
+        if (actualToken.type() != expectedTokenType) {
+            throw ParserException.unexpectedToken(expectedTokenType.name(), actualToken.type().name(), actualToken.location());
         }
-        return token;
+        return actualToken;
     }
 }
